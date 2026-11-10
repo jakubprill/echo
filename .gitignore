@@ -1,0 +1,11 @@
+# Talie słówek trzymamy poza repozytorium (mogą zawierać chronione treści).
+# Wyjątek: examples/ z taliami napisanymi dla projektu.
+*.json
+!examples/*.json
+
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+node_modules/

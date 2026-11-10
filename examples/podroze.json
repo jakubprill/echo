@@ -1,0 +1,18 @@
+{
+  "format": "echo-deck",
+  "version": 1,
+  "id": "przyklad-podroze",
+  "title": "Przykład: podróże",
+  "source": "Talia przykładowa napisana dla repozytorium Echo (CC0)",
+  "level": "A2/B1",
+  "from": "en",
+  "to": "pl",
+  "cards": [
+    {"id":"przyklad-podroze-01","en":"a boarding pass","pl":"karta pokładowa","ex":"Please have your boarding pass ready at the gate.","gap":"boarding pass","note":"to board = wejść na pokład"},
+    {"id":"przyklad-podroze-02","en":"to check in","pl":"zameldować się, odprawić się","ex":"We need to check in at the hotel before six.","gap":"check in","note":"Rzeczownik: a check-in."},
+    {"id":"przyklad-podroze-03","en":"a delay","pl":"opóźnienie","ex":"Our train had a two-hour delay.","gap":"delay","note":"to be delayed = mieć opóźnienie"},
+    {"id":"przyklad-podroze-04","en":"luggage","pl":"bagaż","ex":"How much luggage are you taking?","gap":"luggage","note":"Rzeczownik niepoliczalny: much luggage, a piece of luggage."},
+    {"id":"przyklad-podroze-05","en":"a round trip","pl":"podróż w obie strony","ex":"A round trip to Gdańsk costs less than I expected.","gap":"round trip","note":"BrE także: a return ticket."},
+    {"id":"przyklad-podroze-06","en":"to get lost","pl":"zgubić się","ex":"We got lost in the old town, but it was fun.","gap":"got lost","note":""}
+  ]
+}

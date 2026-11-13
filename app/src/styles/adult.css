@@ -1,7 +1,7 @@
 /* Adult line: navigation rail on the left on wide screens, bottom bar on phones. */
-.shell { height: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); }
+.shell { height: 100%; padding-top: var(--safe-top); display: grid; grid-template-columns: auto minmax(0, 1fr); }
 .shell-immersive { grid-template-columns: minmax(0, 1fr); }
-.rail { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 10px; padding-left: max(10px, env(safe-area-inset-left, 0px)); overflow-y: auto; }
+.rail { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 10px max(20px, var(--safe-bottom)); padding-left: max(10px, var(--safe-left)); overflow-y: auto; }
 .logo { width: 56px; height: 56px; border-radius: 16px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; flex: none; }
 .rail .logo { margin-bottom: 12px; }
 .rail button { width: 88px; min-height: 72px; border: 0; border-radius: var(--r-md); background: none; color: var(--muted); display: grid; place-items: center; align-content: center; gap: 2px; font-weight: 700; font-size: 13px; }
@@ -55,7 +55,7 @@
 .bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
 
 /* study */
-.study { height: 100%; max-width: 1040px; margin: 0 auto; padding-block: clamp(14px, 3vh, 32px); padding-left: var(--gutter-l); padding-right: var(--gutter-r); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: clamp(14px, 3vh, 28px); }
+.study { height: 100%; max-width: 1040px; margin: 0 auto; padding-top: clamp(14px, 3vh, 32px); padding-bottom: calc(clamp(14px, 3vh, 32px) + var(--safe-bottom)); padding-left: var(--gutter-l); padding-right: var(--gutter-r); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: clamp(14px, 3vh, 28px); }
 .top { display: flex; align-items: center; gap: 16px; }
 .prog { flex: 1; height: 12px; border-radius: 99px; background: var(--sunk); overflow: hidden; }
 .prog i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.3s; }
@@ -150,15 +150,16 @@
 .deck-rows small { color: var(--muted); font-variant-numeric: tabular-nums; }
 
 /* settings */
-.form { display: grid; gap: 16px; }
+.form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .field { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; min-height: 48px; }
-.field > span { font-weight: 700; }
+.field > span { font-weight: 700; min-width: 0; }
 .field-check { min-height: 56px; cursor: pointer; }
-.form select { min-height: 48px; padding: 0 12px; max-width: 100%; min-width: min(100%, 260px); }
-.form input[type="range"] { width: min(100%, 260px); accent-color: var(--accent); height: 44px; }
-.form input[type="checkbox"] { width: 28px; height: 28px; accent-color: var(--accent); }
-.seg { display: inline-flex; flex-wrap: wrap; background: var(--sunk); border-radius: var(--r-md); padding: 4px; gap: 4px; }
-.seg button { border: 0; background: none; min-height: 44px; padding: 0 16px; border-radius: 10px; font-weight: 700; color: var(--muted); }
+.form select { min-height: 48px; padding: 0 12px; flex: 1 1 260px; width: 100%; min-width: 0; max-width: 420px; text-overflow: ellipsis; }
+.form input[type="range"] { flex: 1 1 200px; width: 100%; min-width: 0; max-width: 320px; accent-color: var(--accent); height: 44px; }
+.form input[type="checkbox"] { width: 28px; height: 28px; margin: 0; flex: none; accent-color: var(--accent); }
+.field-check { flex-wrap: nowrap; }
+.seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; background: var(--sunk); border-radius: var(--r-md); padding: 4px; gap: 4px; }
+.seg button { flex: 1 1 auto; border: 0; background: none; min-height: 48px; padding: 0 16px; border-radius: 10px; font-weight: 700; color: var(--muted); }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .stepper { display: inline-flex; align-items: center; gap: 12px; }
 .stepper button { width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--sunk); font: 700 24px var(--f-display); }
@@ -167,7 +168,7 @@
 .backup textarea { width: 100%; padding: 10px; font: 13px ui-monospace, Consolas, monospace; }
 
 /* profile picker */
-.chooser { height: 100%; overflow-y: auto; display: grid; align-content: safe center; justify-items: center; gap: 28px; padding-block: 32px; padding-left: var(--gutter-l); padding-right: var(--gutter-r); text-align: center; }
+.chooser { height: 100%; overflow-y: auto; display: grid; align-content: safe center; justify-items: center; gap: 28px; padding-top: calc(32px + var(--safe-top)); padding-bottom: calc(32px + var(--safe-bottom)); padding-left: var(--gutter-l); padding-right: var(--gutter-r); text-align: center; }
 .chooser-head { display: grid; justify-items: center; gap: 8px; }
 .chooser h1 { font: 700 44px/1 var(--f-display); letter-spacing: -0.02em; }
 .chooser p { color: var(--muted); font-size: 19px; }
@@ -183,9 +184,12 @@
 
 @media (max-width: 760px) {
   .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .rail { grid-row: 2; flex-direction: row; justify-content: space-around; border-right: 0; border-top: 1px solid var(--line); padding: 6px max(6px, env(safe-area-inset-right, 0px)) 6px max(6px, env(safe-area-inset-left, 0px)); gap: 2px; overflow: visible; }
+  .rail { grid-row: 2; flex-direction: row; justify-content: space-around; border-right: 0; border-top: 1px solid var(--line); padding: 6px max(6px, var(--safe-right)) max(6px, var(--safe-bottom)) max(6px, var(--safe-left)); gap: 2px; overflow: visible; }
   .rail .logo { display: none; }
-  .rail button { width: auto; flex: 1; min-width: 0; min-height: 60px; font-size: 12px; }
+  .rail button { width: auto; flex: 1; min-width: 0; min-height: 60px; font-size: 12px; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .page { padding-bottom: 24px; gap: 20px; }
+  .btn { padding: 0 22px; }
+  .row > .btn { flex: 1 1 auto; }
   .shell-immersive { grid-template-rows: minmax(0, 1fr); }
   .rate button { min-height: 76px; }
   .round { width: 52px; height: 52px; }

@@ -16,8 +16,14 @@
   --f-kd: "Baloo 2", "Andika", system-ui, sans-serif;
   --f-kb: "Andika", "Atkinson Hyperlegible", system-ui, sans-serif;
   --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-kids: 28px;
-  --gutter-l: max(clamp(16px, 4vw, 48px), env(safe-area-inset-left, 0px));
-  --gutter-r: max(clamp(16px, 4vw, 48px), env(safe-area-inset-right, 0px));
+  /* Safe areas: env() covers iOS and desktop WebViews; the Android shell has no env() support in
+     edge-to-edge mode, so it reports the system bars itself as --android-inset-* (platform/insets.ts). */
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--android-inset-top, 0px));
+  --safe-right: max(env(safe-area-inset-right, 0px), var(--android-inset-right, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--android-inset-bottom, 0px));
+  --safe-left: max(env(safe-area-inset-left, 0px), var(--android-inset-left, 0px));
+  --gutter-l: max(clamp(16px, 4vw, 48px), var(--safe-left));
+  --gutter-r: max(clamp(16px, 4vw, 48px), var(--safe-right));
   color-scheme: light;
 }
 .echo[data-theme="dark"] {

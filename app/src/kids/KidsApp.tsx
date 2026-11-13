@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { setLine } from "../App";
 import { islands, type Island } from "../core/kids";
 import type { Card } from "../core/types";
@@ -17,26 +17,39 @@ export function Jar({ stars }: { stars: number }) {
 /** Leaving kids mode requires holding the button so a child does not exit by accident. */
 function ParentGate() {
   const t = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const tipTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [hold, setHold] = useState(false);
+  const [tip, setTip] = useState(false);
+  useEffect(() => () => { clearTimeout(t.current); clearTimeout(tipTimer.current); }, []);
   const stop = () => {
+    if (!hold) return;
     clearTimeout(t.current);
     setHold(false);
+    // A short tap explains the gesture instead of doing nothing.
+    setTip(true);
+    clearTimeout(tipTimer.current);
+    tipTimer.current = setTimeout(() => setTip(false), 3500);
   };
   return (
-    <button
-      className={`kround gate${hold ? " hold" : ""}`}
-      aria-label="Dla rodzica: przytrzymaj, aby wyjść z Echo Kids"
-      onPointerDown={() => {
-        setHold(true);
-        t.current = setTimeout(() => setLine(null), 1300);
-      }}
-      onPointerUp={stop}
-      onPointerLeave={stop}
-      onPointerCancel={stop}
-      onKeyDown={(e) => e.key === "Enter" && setLine(null)}
-    >
-      <Icon name="user" size={32} />
-    </button>
+    <span className="gate-wrap">
+      <button
+        className={`kround gate${hold ? " hold" : ""}`}
+        aria-label="Dla rodzica: przytrzymaj, aby wyjść z Echo Kids"
+        onPointerDown={(e) => {
+          e.currentTarget.setPointerCapture?.(e.pointerId);
+          setHold(true);
+          setTip(false);
+          t.current = setTimeout(() => setLine(null), 1300);
+        }}
+        onPointerUp={stop}
+        onPointerCancel={stop}
+        onContextMenu={(e) => e.preventDefault()}
+        onKeyDown={(e) => e.key === "Enter" && setLine(null)}
+      >
+        <Icon name="user" size={32} />
+      </button>
+      {tip && <span className="gate-tip" role="status">Rodzicu: przytrzymaj ten przycisk, aby wyjść z Echo Kids</span>}
+    </span>
   );
 }
 

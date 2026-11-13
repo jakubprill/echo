@@ -1,4 +1,4 @@
-/** Numer dnia w czasie lokalnym (dni od 1970-01-01). */
+/** Day number in local time (days since 1970-01-01). */
 export function dayNumber(d: Date = new Date()): number {
   return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000);
 }

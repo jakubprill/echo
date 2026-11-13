@@ -8,10 +8,10 @@ export type Island = { id: string; title: string; emoji: string; deck: Deck | nu
 
 const word = (s: AppState, id: string): KidsWord => s.kids.words[id] ?? { level: 0, sticker: false, seen: 0 };
 
-/** Karty, w które da się grać obrazkami. */
+/** Cards that can be played with pictures. */
 export const playable = (d: Deck): Card[] => d.cards.filter((c) => c.emoji);
 
-/** Wyspy na mapie: unity książki (także te jeszcze bez talii), a potem talie spoza książek. */
+/** Islands on the map: the book's units (including those without a deck yet), then decks outside any book. */
 export function islands(decks: Deck[], books: Book[], s: AppState): Island[] {
   const make = (id: string, title: string, deck: Deck | null): Island => {
     const cards = deck ? playable(deck) : [];
@@ -33,7 +33,7 @@ export function islands(decks: Deck[], books: Book[], s: AppState): Island[] {
 export type KidsQuestion = { card: Card; options: Card[] };
 export type KidsRound = { intro: Card[]; questions: KidsQuestion[] };
 
-/** Runda: sześć najsłabiej znanych słów w kolejności podręcznika; nowe słowa najpierw się przedstawia. */
+/** A round: the six least-known words in textbook order; new words are introduced first. */
 export function buildRound(deck: Deck, s: AppState, rnd: () => number = Math.random): KidsRound {
   const cards = playable(deck);
   const ranked = cards.map((c, i) => ({ c, i, w: word(s, c.id) })).sort((a, b) => a.w.level - b.w.level || a.w.seen - b.w.seen || a.i - b.i);
@@ -52,7 +52,7 @@ export function buildRound(deck: Deck, s: AppState, rnd: () => number = Math.ran
   return { intro: chosen.filter((x) => x.w.seen === 0).map((x) => x.c), questions };
 }
 
-/** Wynik jednego pytania: trafienie za pierwszym razem daje gwiazdkę, naklejkę i wyższy poziom. */
+/** Result of one question: a first-try hit earns a star, a sticker and a level up. */
 export function applyKidsAnswer(s: AppState, cardId: string, firstTry: boolean): AppState {
   const w = word(s, cardId);
   const next: KidsWord = firstTry ? { level: Math.min(MAX_LEVEL, w.level + 1), sticker: true, seen: w.seen + 1 } : { level: Math.max(0, w.level - 1), sticker: w.sticker, seen: w.seen + 1 };

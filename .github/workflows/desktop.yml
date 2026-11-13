@@ -19,7 +19,7 @@ defaults:
 
 jobs:
   build:
-    name: Instalator
+    name: Installer
     runs-on: ${{ inputs.os }}
     steps:
       - uses: actions/checkout@v4

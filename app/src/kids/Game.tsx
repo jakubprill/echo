@@ -37,7 +37,7 @@ export function Game({ island, onExit, onDone }: { island: Island; onExit: () =>
     [react],
   );
 
-  // Nowe słowo i każde pytanie Echo wypowiada samo; dotknięcie nietoperza powtarza.
+  // Echo speaks each new word and question by itself; tapping the bat repeats it.
   useEffect(() => {
     const text = inIntro ? round.intro[intro].en : q?.card.en;
     if (!text) return;

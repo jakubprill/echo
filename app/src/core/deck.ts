@@ -20,7 +20,7 @@ function parseCard(raw: unknown, deckId: string, i: number): Card {
   return card;
 }
 
-/** Wczytuje jedną talię formatu echo-deck (v1 lub v2). Nieznane pola pomija. */
+/** Parses a single echo-deck (v1 or v2). Unknown fields are ignored. */
 export function parseDeck(raw: unknown): Deck {
   const d = (raw ?? {}) as Record<string, unknown>;
   if (d.format !== "echo-deck") throw new DeckError("To nie jest talia Echo (brak pola format: \"echo-deck\").");
@@ -50,7 +50,7 @@ export function parseDeck(raw: unknown): Deck {
   return deck;
 }
 
-/** Plik może zawierać jedną talię, tablicę talii albo kopię zapasową Echo. */
+/** A file may contain one deck, an array of decks, or an Echo backup. */
 export function parseDeckFile(text: string): Deck[] {
   let data: unknown;
   try {
@@ -71,7 +71,7 @@ export function parseBook(raw: unknown): Book | null {
 
 export const audienceOf = (d: Deck): Audience => d.audience ?? "adults";
 
-/** Talie użytkownika mają pierwszeństwo przed wbudowanymi o tym samym id. */
+/** User decks take precedence over bundled decks with the same id. */
 export function mergeDecks(bundled: Deck[], user: Deck[]): Deck[] {
   const ids = new Set(user.map((d) => d.id));
   return [...bundled.filter((d) => !ids.has(d.id)), ...user];
@@ -94,7 +94,7 @@ export function parseBackup(text: string): AppState {
   return migrate(data.state);
 }
 
-/** Uzupełnia brakujące pola, żeby starsze zapisy dało się wczytać. */
+/** Fills in missing fields so older saves can still be loaded. */
 export function migrate(raw: Partial<AppState> | null | undefined): AppState {
   const d = defaultState();
   if (!raw || typeof raw !== "object") return d;

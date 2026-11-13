@@ -9,7 +9,7 @@ import { Icon } from "../ui/icons";
 import type { Nav } from "./AdultApp";
 import { plural } from "./Home";
 
-/** Wczytuje talie z pliku i dopisuje je do stanu (talia o tym samym id zostaje zastąpiona). */
+/** Loads decks from a file and adds them to the state (a deck with the same id is replaced). */
 export async function importDecks(): Promise<{ ok: boolean; text: string } | null> {
   const file = await pickTextFile();
   if (!file) return null;

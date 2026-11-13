@@ -17,7 +17,7 @@ const SWIPE = 110;
 
 export function Study({ deckId, nav }: { deckId?: string; nav: Nav }) {
   const s = useAppState();
-  // Kolejkę układamy raz na początku sesji, żeby oceny nie przetasowywały kart pod palcem.
+  // The queue is built once at the start of the session so grading does not reshuffle cards under the user's finger.
   const initial = useMemo(() => {
     const st = getState();
     return buildQueue(decksFor(st, "adults").filter((d) => !deckId || d.id === deckId), st, dayNumber());

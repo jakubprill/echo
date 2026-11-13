@@ -1,6 +1,6 @@
-// Port wymowy. W aplikacji Tauri używa natywnego lektora systemu
-// (Android TextToSpeech, iOS/macOS AVSpeechSynthesizer, Windows WinRT),
-// w przeglądarce Web Speech API. Reszta aplikacji zna tylko ten moduł.
+// Speech port. In the Tauri app it uses the system's native text-to-speech
+// (Android TextToSpeech, iOS/macOS AVSpeechSynthesizer, Windows WinRT);
+// in the browser, the Web Speech API. The rest of the app only knows this module.
 import { isTauri } from "@tauri-apps/api/core";
 import * as native from "tauri-plugin-tts-api";
 
@@ -16,7 +16,7 @@ export function ttsAvailable(): boolean {
 async function webVoices(): Promise<SpeechSynthesisVoice[]> {
   const now = speechSynthesis.getVoices();
   if (now.length) return now;
-  // Chrome ładuje listę głosów asynchronicznie.
+  // Chrome loads the voice list asynchronously.
   return new Promise((resolve) => {
     const done = () => resolve(speechSynthesis.getVoices());
     speechSynthesis.addEventListener("voiceschanged", done, { once: true });
@@ -43,14 +43,14 @@ export async function voices(lang = "en"): Promise<Voice[]> {
   }
 }
 
-/** Wybiera głos: wskazany przez użytkownika, inaczej pierwszy pasujący do akcentu. */
+/** Picks a voice: the one the user chose, otherwise the first one matching the accent. */
 export function pickVoice(list: Voice[], accent: string, voiceId?: string | null): Voice | undefined {
   return list.find((v) => v.id === voiceId) ?? list.find((v) => v.language.toLowerCase() === accent.toLowerCase()) ?? list[0];
 }
 
 let cache: Voice[] | null = null;
 
-/** Czy system ma jakikolwiek angielski głos. Bez niego lektor milczy, zamiast czytać angielski polskim głosem. */
+/** Whether the system has any English voice. Without one, speech stays silent instead of reading English with a Polish voice. */
 export async function hasEnglishVoice(): Promise<boolean> {
   if (!ttsAvailable()) return false;
   const list = await voices("en");
@@ -59,13 +59,13 @@ export async function hasEnglishVoice(): Promise<boolean> {
 }
 
 export async function speak(text: string, opts: SpeakOptions = {}): Promise<void> {
-  // Nawiasy i wielokropki w hasłach („to take a rain check (on sth)”) nie są do czytania.
+  // Brackets and ellipses in entries ("to take a rain check (on sth)") are not meant to be read aloud.
   const clean = text.replace(/\(.*?\)/g, "").replace(/\.\.\./g, "").trim();
   if (!clean) return;
   try {
     if (!cache?.length) cache = await voices("en");
     const voice = pickVoice(cache.filter((v) => v.language.toLowerCase().startsWith("en")), opts.language ?? "en-GB", opts.voiceId);
-    // Bez angielskiego głosu system podstawiłby domyślny (np. polski), więc lepiej nie mówić wcale.
+    // Without an English voice the system would fall back to its default (e.g. Polish), so it is better to stay silent.
     if (!voice) return;
     if (isTauri()) {
       await native.stop().catch(() => {});
@@ -81,6 +81,6 @@ export async function speak(text: string, opts: SpeakOptions = {}): Promise<void
     u.rate = opts.rate ?? 1;
     speechSynthesis.speak(u);
   } catch {
-    // Brak lektora nie może zatrzymać nauki.
+    // Missing speech must never block studying.
   }
 }

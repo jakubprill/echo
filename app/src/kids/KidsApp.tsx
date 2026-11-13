@@ -14,7 +14,7 @@ export function Jar({ stars }: { stars: number }) {
   return <span className="jar" aria-label={`Gwiazdki: ${stars}`}><i />{stars}</span>;
 }
 
-/** Wyjście z trybu dziecka wymaga przytrzymania przycisku, żeby dziecko nie wyszło przypadkiem. */
+/** Leaving kids mode requires holding the button so a child does not exit by accident. */
 function ParentGate() {
   const t = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [hold, setHold] = useState(false);

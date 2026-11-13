@@ -1,5 +1,5 @@
-// Jeden magazyn stanu aplikacji. Zmiany przechodzą przez update() z czystą funkcją
-// z core/, a zapis na dysk dzieje się w tle przez port storage.
+// The app's single state store. Changes go through update() with a pure function
+// from core/, and saving happens in the background through the storage port.
 import { useSyncExternalStore } from "react";
 import * as content from "virtual:echo-content";
 import { audienceOf, mergeDecks, migrate, parseBook, parseDeck } from "../core/deck";
@@ -11,7 +11,7 @@ let state: AppState = defaultState();
 const listeners = new Set<() => void>();
 let timer: ReturnType<typeof setTimeout> | undefined;
 
-/** Talie i książki dołączone do tego builda. Nie trafiają do zapisu stanu. */
+/** Decks and books bundled with this build. They are not written to saved state. */
 export const bundledDecks: Deck[] = content.decks.flatMap((d) => {
   try {
     return [parseDeck(d)];
@@ -31,14 +31,14 @@ export async function initStore(): Promise<void> {
     }
   }
   listeners.forEach((l) => l());
-  // Kopia z konta (tylko w artefakcie Claude) dociera później i wygrywa, gdy jest nowsza.
+  // The account copy (Claude artifact only) arrives later and wins when it is newer.
   void loadNewerRemote().then((remote) => {
     if (!remote) return;
     try {
       state = migrate(JSON.parse(remote));
       listeners.forEach((l) => l());
     } catch {
-      // Uszkodzona kopia: zostaje stan lokalny.
+      // Corrupted copy: keep the local state.
     }
   });
 }

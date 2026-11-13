@@ -8,7 +8,7 @@ import { decksFor, update, useAppState } from "./state/store";
 import { Icon } from "./ui/icons";
 import { Bat } from "./ui/Bat";
 
-/** Motyw „system” bierze ustawienie z hosta (artefakt Claude) albo z systemu. */
+/** The "system" theme follows the host (Claude artifact) or the operating system. */
 function useSystemDark(): boolean {
   const read = () => {
     const forced = document.documentElement.dataset.theme;

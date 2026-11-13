@@ -22,7 +22,7 @@ export function levenshtein(a: string, b: string): number {
   return row[b.length];
 }
 
-/** Odpowiedź wpisana: bez wielkości liter i przedimków, z tolerancją jednej literówki. */
+/** Typed answer: case- and article-insensitive, tolerating one typo. */
 export function checkTyped(input: string, expected: string): "ok" | "typo" | "wrong" {
   const a = norm(input), b = norm(expected);
   if (!a) return "wrong";
@@ -44,7 +44,7 @@ function distractors(card: Card, pool: Card[], pick: (c: Card) => string, rnd: (
   return out;
 }
 
-/** Układa quiz: wybór tłumaczenia w obie strony, wpisywanie i luka w zdaniu. */
+/** Builds a quiz: translation choice in both directions, typing, and fill-the-gap. */
 export function buildQuiz(cards: Card[], n = 10, rnd: () => number = Math.random): Question[] {
   const chosen = shuffle(cards, rnd).slice(0, n);
   return chosen.map((card, i): Question => {

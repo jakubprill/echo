@@ -1,7 +1,7 @@
-// Port zapisu stanu. W wersji alfa stan to jeden dokument JSON w localStorage
-// (działa w przeglądarce i w WebView Tauri). Wersja uruchomiona jako artefakt Claude
-// dodatkowo trzyma kopię na koncie użytkownika, więc postępy są te same na każdym urządzeniu.
-// Docelowo: plik w katalogu danych aplikacji i własna synchronizacja.
+// State storage port. In the alpha the state is a single JSON document in localStorage
+// (works in the browser and in the Tauri WebView). When running as a Claude artifact it also
+// keeps a copy in the user's account, so progress is the same on every device.
+// Target: a file in the app data directory and our own sync.
 const KEY = "echo.state.v1";
 const STAMP = "echo.state.v1.savedAt";
 let memory: { json: string; savedAt: number } | null = null;
@@ -30,12 +30,12 @@ export async function loadState(): Promise<string | null> {
     const json = localStorage.getItem(KEY);
     if (json) memory = { json, savedAt: Number(localStorage.getItem(STAMP)) || 0 };
   } catch {
-    // Brak dostępu do localStorage: zostaje pamięć tej sesji.
+    // No access to localStorage: fall back to in-memory state for this session.
   }
   return memory?.json ?? null;
 }
 
-/** Stan z konta, jeśli jest nowszy niż lokalny (inaczej null). Może odpowiedzieć po kilku sekundach. */
+/** State from the account if it is newer than the local one (otherwise null). May take a few seconds to respond. */
 export async function loadNewerRemote(): Promise<string | null> {
   try {
     const snap = await (await cloudDoc())?.get();
@@ -71,7 +71,7 @@ export async function saveState(json: string): Promise<boolean> {
     try {
       if (snapshot) await (await cloudDoc())?.set({ json: snapshot.json, savedAt: snapshot.savedAt });
     } catch {
-      // Zapis na koncie jest dodatkiem; lokalna kopia już istnieje.
+      // Saving to the account is a bonus; the local copy already exists.
     }
   }, 1500);
   return writeLocal();

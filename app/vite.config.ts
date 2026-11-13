@@ -10,9 +10,9 @@ const host = process.env.TAURI_DEV_HOST;
 const appVersion: string =
   process.env.ECHO_VERSION || JSON.parse(fs.readFileSync(path.resolve(__dirname, "package.json"), "utf8")).version;
 
-// Treści (talie i książki) są dołączane w czasie budowania z katalogu
-// ECHO_CONTENT_DIR. Domyślnie to ../examples, czyli tylko talie napisane dla
-// repozytorium. Prywatne talie leżą poza repo i trafiają tylko do prywatnych buildów.
+// Content (decks and books) is bundled at build time from the ECHO_CONTENT_DIR
+// directory. The default is ../examples, i.e. only decks written for this
+// repository. Private decks live outside the repo and only go into private builds.
 function echoContent(): Plugin {
   const id = "virtual:echo-content";
   const dir = path.resolve(process.env.ECHO_CONTENT_DIR ?? "../examples");

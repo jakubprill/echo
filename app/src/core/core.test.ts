@@ -14,7 +14,7 @@ const deck = (id: string, n: number, extra: Partial<Deck> = {}): Deck => ({
 });
 
 describe("SM-2", () => {
-  it("wydłuża odstępy po dobrych odpowiedziach", () => {
+  it("lengthens intervals after good answers", () => {
     let p = review(undefined, "good", 100);
     expect(p).toMatchObject({ reps: 1, interval: 1, due: 101 });
     p = review(p, "good", 101);
@@ -23,17 +23,17 @@ describe("SM-2", () => {
     expect(p.interval).toBe(8);
     expect(p.due).toBe(112);
   });
-  it("„Nie wiem” zeruje serię, obniża łatwość i zostawia kartę na dziś", () => {
+  it("Again (Nie wiem) resets the streak, lowers ease and keeps the card for today", () => {
     const p = review(review(review(undefined, "good", 1), "good", 2), "again", 5);
     expect(p).toMatchObject({ reps: 0, interval: 0, due: 5, lapses: 1 });
     expect(p.ease).toBeCloseTo(2.3);
   });
-  it("łatwość nie spada poniżej 1,3", () => {
+  it("ease never drops below 1.3", () => {
     let p = review(undefined, "good", 0);
     for (let i = 0; i < 20; i++) p = review(p, "again", i);
     expect(p.ease).toBeCloseTo(1.3);
   });
-  it("„Łatwe” daje dłuższy odstęp niż „Dobrze”, a „Trudne” krótszy", () => {
+  it("Easy gives a longer interval than Good, and Hard a shorter one", () => {
     const base = review(review(undefined, "good", 0), "good", 1);
     const [h, g, e] = (["hard", "good", "easy"] as const).map((x) => review(base, x, 4).interval);
     expect(h).toBeLessThan(g);
@@ -41,8 +41,8 @@ describe("SM-2", () => {
   });
 });
 
-describe("sesja nauki", () => {
-  it("szanuje dzienny limit nowych kart i liczy powtórki", () => {
+describe("study session", () => {
+  it("respects the daily new-card limit and counts reviews", () => {
     let s = defaultState();
     s.settings.newPerDay = 3;
     const d = deck("a", 10);
@@ -55,20 +55,20 @@ describe("sesja nauki", () => {
     expect(buildQueue([d], s, 11)[0].dir).toBe("pl-en");
     expect(s.log[10]).toEqual({ reviews: 1, fresh: 1, correct: 1 });
   });
-  it("po „Nie wiem” karta wraca w tej samej sesji", () => {
+  it("after Again the card returns in the same session", () => {
     const s = defaultState();
     const q = buildQueue([deck("a", 6)], s, 1);
     const rest = requeue(q.slice(1), q[0]);
     expect(rest[3].card.id).toBe("a-0");
   });
-  it("błąd w quizie przyspiesza powtórkę", () => {
+  it("a quiz mistake brings the review forward", () => {
     let s = defaultState();
     const d = deck("a", 1);
     s = applyGrade(s, buildQueue([d], s, 1)[0], "easy", 1);
     expect(s.progress["a-0"].due).toBe(5);
     expect(markDueNow(s, "a-0", 2).progress["a-0"].due).toBe(2);
   });
-  it("liczy serię dni", () => {
+  it("counts the day streak", () => {
     const s = defaultState();
     s.log = { 8: { reviews: 2, fresh: 0, correct: 2 }, 9: { reviews: 1, fresh: 0, correct: 1 } };
     expect(streak(s, 10)).toBe(2);
@@ -76,22 +76,22 @@ describe("sesja nauki", () => {
   });
 });
 
-describe("talie", () => {
-  it("wczytuje jedną talię i tablicę talii, pomija nieznane pola", () => {
+describe("decks", () => {
+  it("loads a single deck and an array of decks, ignoring unknown fields", () => {
     const one = JSON.stringify({ ...deck("x", 2), extra: 1 });
     expect(parseDeckFile(one)[0].cards).toHaveLength(2);
     expect(parseDeckFile(JSON.stringify([deck("x", 1), deck("y", 1)]))).toHaveLength(2);
   });
-  it("odrzuca zły plik z czytelnym komunikatem", () => {
+  it("rejects an invalid file with a readable message", () => {
     expect(() => parseDeckFile("{")).toThrow(DeckError);
     expect(() => parseDeckFile("{}")).toThrow(/nie ma żadnej talii/);
     expect(() => parseDeckFile(JSON.stringify({ format: "echo-deck", id: "z", cards: [{ en: "a" }] }))).toThrow(/„en” albo „pl”/);
   });
-  it("talia użytkownika zastępuje wbudowaną o tym samym id", () => {
+  it("a user deck replaces a bundled deck with the same id", () => {
     const m = mergeDecks([deck("a", 1), deck("b", 1)], [deck("a", 5)]);
     expect(m.map((d) => [d.id, d.cards.length])).toEqual([["b", 1], ["a", 5]]);
   });
-  it("kopia zapasowa wraca bez strat", () => {
+  it("a backup round-trips without loss", () => {
     const s = defaultState();
     s.kids.stars = 7;
     s.decks = [deck("a", 2)];
@@ -100,13 +100,13 @@ describe("talie", () => {
 });
 
 describe("quiz", () => {
-  it("toleruje literówkę, wielkość liter i przedimek", () => {
+  it("tolerates a typo, letter case and articles", () => {
     expect(checkTyped("Boarding pass", "a boarding pass")).toBe("ok");
     expect(checkTyped("bording pass", "a boarding pass")).toBe("typo");
     expect(checkTyped("ticket", "a boarding pass")).toBe("wrong");
     expect(checkTyped("cat", "car")).toBe("wrong");
   });
-  it("pytania wyboru mają cztery różne odpowiedzi z jedną poprawną", () => {
+  it("choice questions have four distinct answers with one correct", () => {
     const d = deck("a", 12);
     for (const q of buildQuiz(d.cards, 10)) {
       if (q.kind !== "choice") continue;
@@ -116,9 +116,9 @@ describe("quiz", () => {
   });
 });
 
-describe("linia dziecięca", () => {
+describe("kids line", () => {
   const d = deck("k", 9, { audience: "kids", book: "b", unit: "u1" });
-  it("runda ma sześć słów, cztery różne obrazki w pytaniu, nowe słowa we wstępie", () => {
+  it("a round has six words, four distinct pictures per question, new words in the intro", () => {
     const r = buildRound(d, defaultState());
     expect(r.questions).toHaveLength(6);
     expect(r.intro).toHaveLength(6);
@@ -127,7 +127,7 @@ describe("linia dziecięca", () => {
       expect(q.options).toContain(q.card);
     }
   });
-  it("trafienie daje gwiazdkę i naklejkę, a kolejna runda bierze nieznane słowa", () => {
+  it("a hit earns a star and a sticker, and the next round picks unknown words", () => {
     let s = defaultState();
     for (const q of buildRound(d, s).questions) s = applyKidsAnswer(s, q.card.id, true);
     expect(s.kids.stars).toBe(6);

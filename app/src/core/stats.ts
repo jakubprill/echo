@@ -1,6 +1,6 @@
 import type { AppState, Deck } from "./types";
 
-/** Liczba kolejnych dni z nauką, licząc do dziś (albo do wczoraj, jeśli dziś jeszcze nic). */
+/** Number of consecutive study days up to today (or yesterday if nothing has been studied today yet). */
 export function streak(s: AppState, today: number): number {
   let d = s.log[today]?.reviews ? today : today - 1;
   let n = 0;
@@ -20,7 +20,7 @@ export function lastDays(s: AppState, today: number, n: number): { day: number; 
 
 export type Buckets = { fresh: number; learning: number; young: number; mature: number };
 
-/** Podział kart: nowe, w nauce (odstęp < 3 dni), utrwalane (< 21 dni), opanowane. */
+/** Card breakdown: new, learning (interval < 3 days), reviewing (< 21 days), mastered. */
 export function buckets(decks: Deck[], s: AppState): Buckets {
   const b: Buckets = { fresh: 0, learning: 0, young: 0, mature: 0 };
   for (const d of decks)

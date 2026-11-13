@@ -13,7 +13,7 @@ export function Quiz({ deckId, nav }: { deckId?: string; nav: Nav }) {
   const questions = useMemo(() => {
     const st = getState();
     const cards = decksFor(st, "adults").filter((d) => !deckId || d.id === deckId).flatMap((d) => d.cards);
-    // Quiz najpierw sprawdza słówka, które już były na fiszkach.
+    // The quiz checks words already seen on flashcards first.
     const seen = cards.filter((c) => st.progress[c.id]);
     return buildQuiz(seen.length >= 8 ? seen : cards, 10);
     // eslint-disable-next-line react-hooks/exhaustive-deps

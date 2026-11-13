@@ -1,4 +1,4 @@
-// Maskotka Echo (tylko linia dziecięca). Nastrój to klasa CSS z animacją.
+// The Echo mascot (kids line only). The mood is a CSS class with an animation.
 export type BatMood = "idle" | "listen" | "happy" | "think";
 
 export function Bat({ mood = "idle" }: { mood?: BatMood }) {

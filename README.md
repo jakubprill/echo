@@ -1,62 +1,71 @@
 # Echo
 
-Aplikacja do nauki słówek angielskich dla osób mówiących po polsku: fiszki z powtórkami w odstępach, quiz i lektor. Działa w przeglądarce na telefonie i komputerze, bez instalacji i bez konta.
+An English vocabulary trainer for Polish speakers: spaced-repetition flashcards, quizzes and text-to-speech. It runs in the browser on phones and computers, with no installation and no account.
 
-*An English vocabulary trainer for Polish speakers: spaced-repetition flashcards, quizzes and text-to-speech. Single HTML file, no build step, no dependencies. The UI is in Polish.*
+The app's interface is in Polish because it is built for Polish learners. Everything else in this repository (code, comments, documentation, issues and pull requests) is in English.
 
 <p>
-  <img src="docs/start.png" width="250" alt="Ekran startowy: liczba kart na dziś i statystyki">
-  <img src="docs/fiszka.png" width="250" alt="Fiszka z tłumaczeniem, zdaniem przykładowym i ocenami">
-  <img src="docs/slowka.png" width="250" alt="Lista słówek i wczytane talie">
+  <img src="docs/start.png" width="250" alt="Home screen: cards due today and statistics">
+  <img src="docs/flashcard.png" width="250" alt="Flashcard with translation, example sentence and grade buttons">
+  <img src="docs/words.png" width="250" alt="Word list and loaded decks">
 </p>
 
-## Wersja alfa (nowa aplikacja)
+## Alpha (the new app)
 
-W katalogu [`app/`](app/) powstaje nowa wersja Echo: jedna aplikacja na Windows, macOS, Androida i iOS (React + TypeScript + Tauri 2) z dwiema liniami, **Echo** dla dorosłych i **Echo Kids** dla dzieci. Jak jest zbudowana i jakie decyzje czekają na przegląd, opisuje [`docs/architektura.md`](docs/architektura.md).
+The [`app/`](app/) directory holds the new version of Echo: one app for Windows, macOS, Android and iOS (React + TypeScript + Tauri 2) with two product lines, **Echo** for adults and **Echo Kids** for children. [`docs/architecture.md`](docs/architecture.md) describes how it is built and which decisions are open for review.
 
 ```sh
 cd app
 npm install
-npm run dev          # przeglądarka, http://localhost:1420
-npm test             # testy logiki
-npm run tauri dev    # okno desktopowe (wymaga Rust)
+npm run dev          # browser, http://localhost:1420
+npm test             # logic tests
+npm run tauri dev    # desktop window (requires Rust)
 ```
 
-Aplikacja dołącza talie z katalogu wskazanego przez `ECHO_CONTENT_DIR` (domyślnie [`examples/`](examples/)). Instalator dla Windows i APK dla Androida buduje się ręcznie (macOS i iOS są na razie wyłączone z CI): Actions → **Build** → Run workflow → wybór platformy. Pliki są w artefaktach przebiegu.
+The app bundles decks from the directory set in `ECHO_CONTENT_DIR` (default: [`examples/`](examples/)). The Windows installer and the Android APK are built on demand (macOS and iOS are disabled in CI for now): Actions → **Build** → Run workflow → choose a platform. The files are attached to the run as artifacts.
 
-Poniżej opis dotychczasowej wersji w jednym pliku `index.html`.
+### Releases
 
-## Co potrafi
+Alpha builds for Android and Windows are published on the [Releases](https://github.com/jakubprill/echo/releases) page. Versions follow [SemVer](https://semver.org/), and alpha versions are marked as pre-releases:
 
-- **Fiszki z powtórkami w odstępach.** Najpierw z angielskiego na polski, a po pierwszej udanej powtórce także w drugą stronę. Cztery oceny (Nie wiem, Trudne, Dobrze, Łatwe) i dzienny limit nowych słówek.
-- **Quiz** z 10 pytań: wybór tłumaczenia w obie strony, wpisywanie po angielsku z tolerancją literówki i uzupełnianie luki w zdaniu. Błędne odpowiedzi wracają do najbliższej powtórki.
-- **Lektor:** systemowy głos przeglądarki, akcent brytyjski lub amerykański i regulowane tempo.
-- **Talie słówek wczytywane z pliku lub linku**, a do tego własne słówka dodawane i edytowane w aplikacji.
-- **Zapis postępów** w przeglądarce, a w wersji uruchomionej jako artefakt w Claude także na koncie użytkownika.
+- `Echo-<version>-android-arm64.apk`
+- `Echo-<version>-windows-x64-setup.exe`
 
-## Uruchomienie
+To publish a release: Actions → **Release** → Run workflow → enter the version without the leading `v` (for example `0.1.0-alpha.2`). The workflow runs the tests, builds both installers and creates the `v<version>` tag and release. The APK is a debug build signed with a per-build key, so uninstall the previous version before installing a new one.
 
-Otwórz `index.html` w przeglądarce. Wygodniej jest podać katalog przez prosty serwer:
+The rest of this README describes the original single-file version in `index.html`.
+
+## Features
+
+- **Spaced-repetition flashcards.** English → Polish first, and after the first successful review also Polish → English. Four grades (Again, Hard, Good, Easy; shown in Polish in the app) and a daily limit of new words.
+- **A 10-question quiz:** choosing the translation in both directions, typing the English word with one typo tolerated, and filling the gap in a sentence. Wrong answers come back at the next review.
+- **Text-to-speech:** the browser's system voices, British or American accent, adjustable speed.
+- **Decks loaded from a file or a link**, plus your own words added and edited in the app.
+- **Progress saved** in the browser, and, when running as a Claude artifact, in the user's account.
+
+## Running
+
+Open `index.html` in a browser. Serving the directory with a simple server is more convenient:
 
 ```sh
 python3 -m http.server
 # http://localhost:8000
 ```
 
-Na telefonie wybierz w menu przeglądarki „Dodaj do ekranu głównego”, żeby Echo działało jak aplikacja.
+On a phone, choose "Add to Home screen" in the browser menu so Echo behaves like an app.
 
-## Talie słówek
+## Decks
 
-Echo nie zawiera wbudowanych słówek. Talię wczytuje się w zakładce **Słówka → Talie**:
+Echo ships without built-in words. Decks are loaded in **Słówka → Talie** (Words → Decks):
 
-- **z pliku** `.json` z jedną talią albo z tablicą kilku talii,
-- **z linku** do talii albo do spisu talii (`echo-deck-index`). Serwer musi pozwalać na pobieranie z innej domeny (CORS).
+- **from a `.json` file** with a single deck or an array of decks,
+- **from a link** to a deck or to a deck index (`echo-deck-index`). The server must allow cross-origin requests (CORS).
 
-Na próbę możesz wczytać [`examples/podroze.json`](examples/podroze.json).
+To try it out, load [`examples/travel.json`](examples/travel.json).
 
-Wczytane talie zapisują się razem z postępami. Ponowne wczytanie talii o tym samym `id` ją aktualizuje, a usunięcie talii nie kasuje postępów.
+Loaded decks are saved together with progress. Loading a deck with the same `id` again updates it, and removing a deck does not erase progress.
 
-### Format talii (`echo-deck`, wersja 1)
+### Deck format (`echo-deck`, version 1)
 
 ```json
 {
@@ -81,40 +90,44 @@ Wczytane talie zapisują się razem z postępami. Ponowne wczytanie talii o tym 
 }
 ```
 
-| Pole | Wymagane | Znaczenie |
+| Field | Required | Meaning |
 |---|---|---|
-| `format`, `version` | tak | Zawsze `"echo-deck"` i `1`. |
-| `id` | tak | Identyfikator talii. Ponowne wczytanie talii o tym samym `id` ją aktualizuje. |
-| `title`, `source`, `level` | nie | Nazwa, źródło i poziom, widoczne na liście talii. |
-| `cards[].id` | tak | Identyfikator słówka, unikalny we wszystkich taliach. Po nim zapisują się postępy, więc nie zmieniaj go po udostępnieniu talii. |
-| `cards[].en`, `cards[].pl` | tak | Słówko lub zwrot i tłumaczenie. Warianty rozdziel ukośnikiem, np. `a couch / a sofa`. |
-| `cards[].ex` | nie | Zdanie przykładowe. |
-| `cards[].gap` | nie | Fragment zdania przykładowego ukrywany w quizie. Musi w nim występować. |
-| `cards[].note` | nie | Notatka pokazywana po odsłonięciu odpowiedzi. |
+| `format`, `version` | yes | Always `"echo-deck"` and `1`. |
+| `id` | yes | Deck identifier. Loading a deck with the same `id` again updates it. |
+| `title`, `source`, `level` | no | Name, source and level shown in the deck list. |
+| `cards[].id` | yes | Word identifier, unique across all decks. Progress is keyed by it, so never change it once a deck is shared. |
+| `cards[].en`, `cards[].pl` | yes | The word or phrase and its translation. Separate variants with a slash, e.g. `a couch / a sofa`. |
+| `cards[].ex` | no | Example sentence. |
+| `cards[].gap` | no | Part of the example sentence hidden in the quiz. It must appear in the sentence. |
+| `cards[].note` | no | Note shown after the answer is revealed. |
 
-Spis kilku talii ma ścieżki względem siebie:
+A deck index lists deck files relative to itself:
 
 ```json
-{ "format": "echo-deck-index", "version": 1, "decks": [ { "id": "przyklad-podroze", "title": "Przykład: podróże", "file": "decks/podroze.json", "count": 6 } ] }
+{ "format": "echo-deck-index", "version": 1, "decks": [ { "id": "przyklad-podroze", "title": "Przykład: podróże", "file": "decks/travel.json", "count": 6 } ] }
 ```
 
-Talie z materiałów kursowych i podręczników są zwykle chronione prawem autorskim. Nie dodawaj ich do tego repozytorium: `.gitignore` domyślnie pomija pliki `.json` poza katalogiem `examples/`.
+Decks made from course materials and textbooks are usually protected by copyright. Do not add them to this repository: `.gitignore` excludes `.json` files outside `examples/` by default.
 
-## Prywatność
+## Privacy
 
-- Postępy i talie zapisują się w przeglądarce (`localStorage`), a w Claude na koncie użytkownika. Aplikacja nie wysyła ich nigdzie indziej.
-- Czcionki ładują się z Google Fonts, więc przeglądarka łączy się z serwerami Google.
-- Lektor używa głosów systemowych. W części przeglądarek (np. Chrome) wybrane głosy działają w chmurze dostawcy przeglądarki.
+- Progress and decks are stored in the browser (`localStorage`) and, in Claude, in the user's account. The app does not send them anywhere else.
+- Fonts load from Google Fonts, so the browser connects to Google's servers.
+- Text-to-speech uses system voices. In some browsers (e.g. Chrome) certain voices run in the browser vendor's cloud.
 
-## Budowa
+## Structure
 
-Cała aplikacja to jeden plik [`index.html`](index.html): HTML, CSS i JavaScript bez frameworków i bez kroku budowania. Najważniejsze części skryptu:
+The original app is a single file, [`index.html`](index.html): HTML, CSS and JavaScript with no framework and no build step. The main parts of the script:
 
-- `decks`: walidacja i wczytywanie talii,
-- `storage`: zapis stanu lokalnie i na koncie Claude,
-- `SRS`: planowanie powtórek (wariant SM-2),
-- `views`: ekrany Fiszki, Quiz, Słówka i Ustawienia.
+- `decks`: deck validation and loading,
+- `storage`: saving state locally and to the Claude account,
+- `SRS`: review scheduling (an SM-2 variant),
+- `views`: the Flashcards, Quiz, Words and Settings screens.
 
-## Licencja
+## Contributing
 
-Wszelkie prawa zastrzeżone, szczegóły w [LICENSE](LICENSE). Kod jest publiczny do wglądu. Komponenty zewnętrzne i ich licencje opisuje [NOTICE.md](NOTICE.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository conventions and [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
+
+## License
+
+[MIT](LICENSE). `examples/travel.json` is additionally dedicated to the public domain under CC0 1.0. The MIT license covers this repository's code only: vocabulary decks loaded into the app keep their own rights. Third-party components and their licenses are listed in [NOTICE.md](NOTICE.md).

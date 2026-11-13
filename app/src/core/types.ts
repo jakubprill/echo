@@ -1,4 +1,4 @@
-// Model domeny Echo. Ten katalog (core/) nie zna przeglądarki, Reacta ani Tauri.
+// Echo domain model. This directory (core/) knows nothing about the browser, React or Tauri.
 
 export type Card = {
   id: string;
@@ -7,7 +7,7 @@ export type Card = {
   ex?: string;
   gap?: string;
   note?: string;
-  // echo-deck v2 (opcjonalne)
+  // echo-deck v2 (optional)
   exPl?: string;
   pos?: string;
   topics?: string[];
@@ -44,7 +44,7 @@ export type Book = {
   units: BookUnit[];
 };
 
-/** Postęp jednej karty w algorytmie SM-2. Dni liczymy jako numer dnia lokalnego. */
+/** Progress of one card in the SM-2 algorithm. Days are local day numbers. */
 export type CardProgress = {
   reps: number;
   lapses: number;
@@ -58,7 +58,7 @@ export type Grade = "again" | "hard" | "good" | "easy";
 
 export type DayLog = { reviews: number; fresh: number; correct: number };
 
-/** Postęp dziecka: poziom 0–3 (pudełka Leitnera) i naklejka za pierwsze trafienie. */
+/** A child's progress: level 0–3 (Leitner boxes) and a sticker for the first hit. */
 export type KidsWord = { level: number; sticker: boolean; seen: number };
 
 export type Settings = {

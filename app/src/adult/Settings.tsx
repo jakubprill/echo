@@ -118,7 +118,7 @@ export function Settings() {
           <button className="btn btn-quiet" onClick={() => setLine("kids")}><Icon name="bat" /> Przejdź do Echo Kids</button>
           <button className="btn btn-quiet" onClick={() => setLine(null)}><Icon name="user" /> Wybór profilu</button>
         </div>
-        <p className="sub">Echo, wersja alfa 0.1.0</p>
+        <p className="sub">Echo {__ECHO_VERSION__}</p>
       </section>
     </div>
   );

@@ -1,0 +1,162 @@
+name: Release
+
+# Publishes a GitHub Release with versioned installers for Android and Windows.
+# Start it by hand (Actions → Release → Run workflow → version) or by pushing a tag vX.Y.Z[-pre.N].
+# Versions follow SemVer; anything with a pre-release part (0.1.0-alpha.1) is marked as a pre-release.
+# File names: Echo-<version>-android-arm64.apk, Echo-<version>-windows-x64-setup.exe.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the leading v, e.g. 0.1.0-alpha.2"
+        type: string
+        required: true
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: app
+
+jobs:
+  prepare:
+    name: Version and tests
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    env:
+      INPUT_VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        name: Resolve version
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then v="${GITHUB_REF_NAME#v}"; else v="${INPUT_VERSION#v}"; fi
+          if ! [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$ ]]; then
+            echo "::error::'$v' is not a SemVer version (expected e.g. 0.1.0-alpha.1)"; exit 1
+          fi
+          if gh release view "v$v" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Release v$v already exists"; exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  windows:
+    name: Windows installer
+    needs: prepare
+    runs-on: windows-latest
+    env:
+      ECHO_VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri -> target
+      - run: npm ci
+      # NSIS only: MSI does not accept SemVer pre-release versions such as 0.1.0-alpha.1.
+      - run: npx tauri build --bundles nsis --ci --config "{\"version\":\"$ECHO_VERSION\"}"
+      - name: Name the installer
+        run: |
+          mkdir -p out
+          cp src-tauri/target/release/bundle/nsis/*-setup.exe "out/Echo-$ECHO_VERSION-windows-x64-setup.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: app/out/*
+          if-no-files-found: error
+
+  android:
+    name: Android APK
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      ECHO_VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      # The Android SDK and NDK are preinstalled on ubuntu-latest.
+      - name: Point to the NDK
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
+          echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri -> target
+      - run: npm ci
+      - run: npx tauri android init --ci
+      # Debug build: signed with a debug key, so it installs straight from the file.
+      - run: npx tauri android build --apk --debug --target aarch64 --ci --config "{\"version\":\"$ECHO_VERSION\"}"
+      - name: Name the APK
+        run: |
+          mkdir -p out
+          apk="$(find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' | head -n 1)"
+          cp "$apk" "out/Echo-$ECHO_VERSION-android-arm64.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: app/out/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish release
+    needs: [prepare, windows, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+      - name: Checksums
+        run: cd dist && sha256sum Echo-* > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Create the release
+        run: |
+          flags=()
+          case "$VERSION" in *-*) flags+=(--prerelease) ;; esac
+          gh release create "v$VERSION" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Echo $VERSION" \
+            --generate-notes \
+            "${flags[@]}"

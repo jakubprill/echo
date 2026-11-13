@@ -6,6 +6,10 @@ import path from "node:path";
 
 const host = process.env.TAURI_DEV_HOST;
 
+// The release workflow passes the version being published; local builds use package.json.
+const appVersion: string =
+  process.env.ECHO_VERSION || JSON.parse(fs.readFileSync(path.resolve(__dirname, "package.json"), "utf8")).version;
+
 // Treści (talie i książki) są dołączane w czasie budowania z katalogu
 // ECHO_CONTENT_DIR. Domyślnie to ../examples, czyli tylko talie napisane dla
 // repozytorium. Prywatne talie leżą poza repo i trafiają tylko do prywatnych buildów.
@@ -39,7 +43,10 @@ function echoContent(): Plugin {
 export default defineConfig(({ mode }) => ({
   plugins: [react(), echoContent(), ...(mode === "artifact" ? [viteSingleFile()] : [])],
   base: "./",
-  define: { __ECHO_TARGET__: JSON.stringify(mode === "artifact" ? "artifact" : "app") },
+  define: {
+    __ECHO_TARGET__: JSON.stringify(mode === "artifact" ? "artifact" : "app"),
+    __ECHO_VERSION__: JSON.stringify(appVersion),
+  },
   build: { outDir: mode === "artifact" ? "dist-artifact" : "dist" },
   clearScreen: false,
   server: {

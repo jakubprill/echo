@@ -1,7 +1,11 @@
 # Talie słówek trzymamy poza repozytorium (mogą zawierać chronione treści).
 # Wyjątek: examples/ z taliami napisanymi dla projektu.
 *.json
-!examples/*.json
+!examples/**/*.json
+
+# Pliki konfiguracyjne aplikacji są potrzebne w repozytorium.
+!app/*.json
+!app/src-tauri/**/*.json
 
 .DS_Store
 Thumbs.db

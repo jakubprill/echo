@@ -1,0 +1,119 @@
+{
+ "format": "echo-deck",
+ "version": 2,
+ "id": "przyklad-kids-food",
+ "title": "Przykład: Food",
+ "book": "przyklad-kids",
+ "unit": "food",
+ "source": "Talia przykładowa napisana dla repozytorium Echo (CC0)",
+ "level": "A1",
+ "audience": "kids",
+ "from": "en",
+ "to": "pl",
+ "cards": [
+  {
+   "id": "przyklad-kids-food-01",
+   "en": "apple",
+   "pl": "jabłko",
+   "ex": "I eat an apple every day.",
+   "gap": "apple",
+   "exPl": "Codziennie jem jabłko.",
+   "pos": "noun",
+   "topics": [
+    "food"
+   ],
+   "emoji": "🍎"
+  },
+  {
+   "id": "przyklad-kids-food-02",
+   "en": "banana",
+   "pl": "banan",
+   "ex": "The banana is yellow.",
+   "gap": "banana",
+   "exPl": "Banan jest żółty.",
+   "pos": "noun",
+   "topics": [
+    "food"
+   ],
+   "emoji": "🍌"
+  },
+  {
+   "id": "przyklad-kids-food-03",
+   "en": "bread",
+   "pl": "chleb",
+   "ex": "I like bread with butter.",
+   "gap": "bread",
+   "exPl": "Lubię chleb z masłem.",
+   "pos": "noun",
+   "topics": [
+    "food"
+   ],
+   "emoji": "🍞"
+  },
+  {
+   "id": "przyklad-kids-food-04",
+   "en": "milk",
+   "pl": "mleko",
+   "ex": "Milk is white.",
+   "gap": "milk",
+   "exPl": "Mleko jest białe.",
+   "pos": "noun",
+   "topics": [
+    "food"
+   ],
+   "emoji": "🥛"
+  },
+  {
+   "id": "przyklad-kids-food-05",
+   "en": "cheese",
+   "pl": "ser",
+   "ex": "The mouse likes cheese.",
+   "gap": "cheese",
+   "exPl": "Mysz lubi ser.",
+   "pos": "noun",
+   "topics": [
+    "food"
+   ],
+   "emoji": "🧀"
+  },
+  {
+   "id": "przyklad-kids-food-06",
+   "en": "carrot",
+   "pl": "marchewka",
+   "ex": "The carrot is orange.",
+   "gap": "carrot",
+   "exPl": "Marchewka jest pomarańczowa.",
+   "pos": "noun",
+   "topics": [
+    "food"
+   ],
+   "emoji": "🥕"
+  },
+  {
+   "id": "przyklad-kids-food-07",
+   "en": "egg",
+   "pl": "jajko",
+   "ex": "I have an egg for breakfast.",
+   "gap": "egg",
+   "exPl": "Jem jajko na śniadanie.",
+   "pos": "noun",
+   "topics": [
+    "food"
+   ],
+   "emoji": "🥚"
+  },
+  {
+   "id": "przyklad-kids-food-08",
+   "en": "pizza",
+   "pl": "pizza",
+   "ex": "We eat pizza on Friday.",
+   "gap": "pizza",
+   "exPl": "W piątek jemy pizzę.",
+   "pos": "noun",
+   "topics": [
+    "food"
+   ],
+   "emoji": "🍕"
+  }
+ ]
+}

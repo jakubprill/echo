@@ -1,0 +1,132 @@
+{
+ "format": "echo-deck",
+ "version": 2,
+ "id": "przyklad-kids-animals",
+ "title": "Przykład: Animals",
+ "book": "przyklad-kids",
+ "unit": "animals",
+ "source": "Talia przykładowa napisana dla repozytorium Echo (CC0)",
+ "level": "A1",
+ "audience": "kids",
+ "from": "en",
+ "to": "pl",
+ "cards": [
+  {
+   "id": "przyklad-kids-animals-01",
+   "en": "cat",
+   "pl": "kot",
+   "ex": "The cat is on the sofa.",
+   "gap": "cat",
+   "exPl": "Kot jest na kanapie.",
+   "pos": "noun",
+   "topics": [
+    "animals"
+   ],
+   "emoji": "🐱"
+  },
+  {
+   "id": "przyklad-kids-animals-02",
+   "en": "dog",
+   "pl": "pies",
+   "ex": "My dog is brown.",
+   "gap": "dog",
+   "exPl": "Mój pies jest brązowy.",
+   "pos": "noun",
+   "topics": [
+    "animals"
+   ],
+   "emoji": "🐶"
+  },
+  {
+   "id": "przyklad-kids-animals-03",
+   "en": "fish",
+   "pl": "ryba",
+   "ex": "The fish can swim.",
+   "gap": "fish",
+   "exPl": "Ryba umie pływać.",
+   "pos": "noun",
+   "topics": [
+    "animals"
+   ],
+   "emoji": "🐟"
+  },
+  {
+   "id": "przyklad-kids-animals-04",
+   "en": "bird",
+   "pl": "ptak",
+   "ex": "A bird is in the tree.",
+   "gap": "bird",
+   "exPl": "Ptak jest na drzewie.",
+   "pos": "noun",
+   "topics": [
+    "animals"
+   ],
+   "emoji": "🐦"
+  },
+  {
+   "id": "przyklad-kids-animals-05",
+   "en": "horse",
+   "pl": "koń",
+   "ex": "The horse is fast.",
+   "gap": "horse",
+   "exPl": "Koń jest szybki.",
+   "pos": "noun",
+   "topics": [
+    "animals"
+   ],
+   "emoji": "🐴"
+  },
+  {
+   "id": "przyklad-kids-animals-06",
+   "en": "cow",
+   "pl": "krowa",
+   "ex": "The cow says moo.",
+   "gap": "cow",
+   "exPl": "Krowa mówi mu.",
+   "pos": "noun",
+   "topics": [
+    "animals"
+   ],
+   "emoji": "🐮"
+  },
+  {
+   "id": "przyklad-kids-animals-07",
+   "en": "rabbit",
+   "pl": "królik",
+   "ex": "The rabbit has long ears.",
+   "gap": "rabbit",
+   "exPl": "Królik ma długie uszy.",
+   "pos": "noun",
+   "topics": [
+    "animals"
+   ],
+   "emoji": "🐰"
+  },
+  {
+   "id": "przyklad-kids-animals-08",
+   "en": "frog",
+   "pl": "żaba",
+   "ex": "The frog is green.",
+   "gap": "frog",
+   "exPl": "Żaba jest zielona.",
+   "pos": "noun",
+   "topics": [
+    "animals"
+   ],
+   "emoji": "🐸"
+  },
+  {
+   "id": "przyklad-kids-animals-09",
+   "en": "duck",
+   "pl": "kaczka",
+   "ex": "The duck is in the water.",
+   "gap": "duck",
+   "exPl": "Kaczka jest w wodzie.",
+   "pos": "noun",
+   "topics": [
+    "animals"
+   ],
+   "emoji": "🦆"
+  }
+ ]
+}

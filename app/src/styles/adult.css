@@ -153,6 +153,7 @@
 .form { display: grid; gap: 16px; }
 .field { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; min-height: 48px; }
 .field > span { font-weight: 700; }
+.field-check { min-height: 56px; cursor: pointer; }
 .form select { min-height: 48px; padding: 0 12px; max-width: 100%; min-width: min(100%, 260px); }
 .form input[type="range"] { width: min(100%, 260px); accent-color: var(--accent); height: 44px; }
 .form input[type="checkbox"] { width: 28px; height: 28px; accent-color: var(--accent); }

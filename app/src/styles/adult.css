@@ -29,6 +29,7 @@
 .chip { justify-self: start; display: inline-block; padding: 3px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 14px; }
 .notice { padding: 12px 16px; border-radius: var(--r-md); font-weight: 700; }
 .notice-ok { background: var(--good-soft); color: var(--good); }
+.notice-warn { background: var(--hard-soft); color: var(--hard); }
 .notice-no { background: var(--again-soft); color: var(--again); }
 
 .panel { background: var(--surface); border-radius: var(--r-lg); padding: clamp(18px, 3vw, 28px); box-shadow: var(--shadow-card); }
@@ -152,6 +153,7 @@
 .form { display: grid; gap: 16px; }
 .field { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; min-height: 48px; }
 .field > span { font-weight: 700; }
+.field-check { min-height: 56px; cursor: pointer; }
 .form select { min-height: 48px; padding: 0 12px; max-width: 100%; min-width: min(100%, 260px); }
 .form input[type="range"] { width: min(100%, 260px); accent-color: var(--accent); height: 44px; }
 .form input[type="checkbox"] { width: 28px; height: 28px; accent-color: var(--accent); }

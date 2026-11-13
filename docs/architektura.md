@@ -59,7 +59,7 @@ Trzy małe moduły, każdy z jedną odpowiedzialnością. Reszta aplikacji woła
 | `storage.ts` | `localStorage` | `localStorage` w WebView | `localStorage` + kopia na koncie użytkownika |
 | `files.ts` | `<input type=file>`, pobranie pliku | okno systemowe + `plugin-fs` | wczytanie pliku, eksport przez kopiowanie tekstu |
 
-Android WebView nie ma Web Speech API, dlatego lektor musi iść przez port. Projekt próbny (spike) potwierdził natywny lektor na macOS; Windows i Android są zbudowane, ale jeszcze nieprzetestowane ręcznie.
+Android WebView nie ma Web Speech API, dlatego lektor musi iść przez port. Projekt próbny (spike) potwierdził natywny lektor na macOS. Polski Windows często nie ma żadnego angielskiego głosu; wtedy lektor milczy (nie czyta angielskiego polskim głosem), a aplikacja pokazuje, gdzie w ustawieniach systemu dodać głos English (UK).
 
 ### `state/store.ts`: jeden stan
 

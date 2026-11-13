@@ -6,6 +6,7 @@ import { canSaveFiles, copyText, pickTextFile, saveTextFile } from "../platform/
 import { ttsAvailable, voices, type Voice } from "../platform/tts";
 import { getState, replaceState, say, update, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
+import { VoiceNotice } from "../ui/VoiceNotice";
 
 const set = (patch: Partial<S>) => update((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
 
@@ -60,6 +61,7 @@ export function Settings() {
       <section className="panel form">
         <h2>Lektor</h2>
         {!ttsAvailable() && <p className="notice notice-no">To urządzenie nie udostępnia lektora. Nauka działa bez dźwięku.</p>}
+        <VoiceNotice />
         <div className="field"><span>Akcent</span><Seg label="Akcent" value={st.accent} options={[["en-GB", "Brytyjski"], ["en-US", "Amerykański"]]} onChange={(accent) => set({ accent, voiceId: null })} /></div>
         <label className="field" htmlFor="set-voice"><span>Głos</span>
           <select id="set-voice" value={st.voiceId ?? ""} onChange={(e) => set({ voiceId: e.target.value || null })}>

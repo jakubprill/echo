@@ -3,6 +3,7 @@ import { counts } from "../core/session";
 import { lastDays, streak } from "../core/stats";
 import { decksFor, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
+import { VoiceNotice } from "../ui/VoiceNotice";
 import type { Nav } from "./AdultApp";
 
 const DAYS = ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "So"];
@@ -31,6 +32,8 @@ export function Home({ nav }: { nav: Nav }) {
         <h1>{hour < 18 ? "Dzień dobry" : "Dobry wieczór"}</h1>
         <p className="sub">{date.charAt(0).toUpperCase() + date.slice(1)}{st > 0 ? ` · seria ${st} ${plural(st, "dzień", "dni", "dni")}` : ""}</p>
       </header>
+
+      <VoiceNotice />
 
       <div className="today">
         <section className="panel">

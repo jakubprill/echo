@@ -50,23 +50,33 @@ export function pickVoice(list: Voice[], accent: string, voiceId?: string | null
 
 let cache: Voice[] | null = null;
 
+/** Czy system ma jakikolwiek angielski głos. Bez niego lektor milczy, zamiast czytać angielski polskim głosem. */
+export async function hasEnglishVoice(): Promise<boolean> {
+  if (!ttsAvailable()) return false;
+  const list = await voices("en");
+  if (list.length) cache = list;
+  return list.some((v) => v.language.toLowerCase().startsWith("en"));
+}
+
 export async function speak(text: string, opts: SpeakOptions = {}): Promise<void> {
   // Nawiasy i wielokropki w hasłach („to take a rain check (on sth)”) nie są do czytania.
   const clean = text.replace(/\(.*?\)/g, "").replace(/\.\.\./g, "").trim();
   if (!clean) return;
   try {
-    cache ??= await voices("en");
-    const voice = pickVoice(cache, opts.language ?? "en-GB", opts.voiceId);
+    if (!cache?.length) cache = await voices("en");
+    const voice = pickVoice(cache.filter((v) => v.language.toLowerCase().startsWith("en")), opts.language ?? "en-GB", opts.voiceId);
+    // Bez angielskiego głosu system podstawiłby domyślny (np. polski), więc lepiej nie mówić wcale.
+    if (!voice) return;
     if (isTauri()) {
       await native.stop().catch(() => {});
-      await native.speak({ text: clean, language: voice?.language ?? opts.language, voiceId: voice?.id, rate: opts.rate ?? 1 });
+      await native.speak({ text: clean, language: voice.language, voiceId: voice.id, rate: opts.rate ?? 1 });
       return;
     }
     if (!hasWebSpeech()) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(clean);
-    u.lang = voice?.language ?? opts.language ?? "en-GB";
-    const v = speechSynthesis.getVoices().find((x) => x.voiceURI === voice?.id);
+    u.lang = voice.language;
+    const v = speechSynthesis.getVoices().find((x) => x.voiceURI === voice.id);
     if (v) u.voice = v;
     u.rate = opts.rate ?? 1;
     speechSynthesis.speak(u);

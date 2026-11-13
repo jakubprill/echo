@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { setLine } from "../App";
+import { leaveProfile } from "../App";
 import { islands, type Island } from "../core/kids";
 import type { Card } from "../core/types";
 import { bundledBooks, decksFor, useAppState } from "../state/store";
@@ -39,12 +39,12 @@ function ParentGate() {
           e.currentTarget.setPointerCapture?.(e.pointerId);
           setHold(true);
           setTip(false);
-          t.current = setTimeout(() => setLine(null), 1300);
+          t.current = setTimeout(leaveProfile, 1300);
         }}
         onPointerUp={stop}
         onPointerCancel={stop}
         onContextMenu={(e) => e.preventDefault()}
-        onKeyDown={(e) => e.key === "Enter" && setLine(null)}
+        onKeyDown={(e) => e.key === "Enter" && leaveProfile()}
       >
         <Icon name="user" size={32} />
       </button>

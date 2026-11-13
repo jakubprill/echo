@@ -8,6 +8,7 @@
     "tts:default",
     "dialog:default",
     "fs:default",
+    "fs:allow-appdata-write-recursive",
     { "identifier": "fs:allow-write-text-file", "allow": [{ "path": "**" }] }
   ]
 }

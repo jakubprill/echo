@@ -6,6 +6,8 @@ import { DeckError, exportBackup, mergeDecks, parseBackup, parseDeckFile } from 
 import { buildQuiz, checkTyped } from "./quiz";
 import { applyKidsAnswer, buildRound, islands } from "./kids";
 import { streak } from "./stats";
+import { backupPlan, isoDay } from "./backups";
+import { addProfile, editProfile, emptyHousehold, migrateHousehold, removeProfile, selectProfile, viewOf, withView } from "./profiles";
 
 const deck = (id: string, n: number, extra: Partial<Deck> = {}): Deck => ({
   format: "echo-deck", version: 2, id, title: id, from: "en", to: "pl",
@@ -92,10 +94,84 @@ describe("decks", () => {
     expect(m.map((d) => [d.id, d.cards.length])).toEqual([["b", 1], ["a", 5]]);
   });
   it("a backup round-trips without loss", () => {
+    let h = addProfile(addProfile(emptyHousehold(), "Ania", "kids", "🦊"), "Jakub", "adults", "🐻");
+    h = { ...h, decks: [deck("a", 2)], active: "p1" };
+    h = withView(h, applyKidsAnswer(viewOf(h), "a-0", true));
+    expect(parseBackup(exportBackup(h))).toEqual(h);
+  });
+  it("an alpha 0.1 backup still loads", () => {
     const s = defaultState();
-    s.kids.stars = 7;
-    s.decks = [deck("a", 2)];
-    expect(parseBackup(exportBackup(s))).toEqual(s);
+    s.kids.stars = 3;
+    const old = JSON.stringify({ format: "echo-backup", version: 1, state: s });
+    expect(parseBackup(old).profiles.map((p) => p.kind)).toEqual(["kids"]);
+  });
+});
+
+describe("profiles", () => {
+  const two = () => addProfile(addProfile(emptyHousehold(), " Jakub ", "adults", "🐻"), "Ania", "kids", "🦊");
+
+  it("adds profiles with unique ids and trimmed names, ignores an empty name", () => {
+    const h = addProfile(two(), "   ", "kids", "🐸");
+    expect(h.profiles.map((p) => [p.id, p.name, p.kind])).toEqual([["p1", "Jakub", "adults"], ["p2", "Ania", "kids"]]);
+    const after = addProfile(removeProfile(h, "p1"), "Ola", "kids", "🐸");
+    expect(new Set(after.profiles.map((p) => p.id)).size).toBe(2);
+  });
+  it("keeps progress separate per profile and decks shared", () => {
+    let h = selectProfile(two(), "p1");
+    const d = deck("a", 2);
+    h = withView(h, { ...applyGrade(viewOf(h), buildQueue([d], viewOf(h), 1)[0], "good", 1), decks: [d] });
+    expect(Object.keys(h.profiles[0].progress)).toEqual(["a-0"]);
+    h = selectProfile(h, "p2");
+    expect(viewOf(h).progress).toEqual({});
+    expect(viewOf(h).decks).toEqual([d]);
+    expect(viewOf(h).settings.line).toBe("kids");
+    h = withView(h, applyKidsAnswer(viewOf(h), "a-1", true));
+    expect(h.profiles[1].kids.stars).toBe(1);
+    expect(h.profiles[0].kids.stars).toBe(0);
+  });
+  it("leaving a profile goes back to the chooser, settings stay per profile", () => {
+    let h = selectProfile(two(), "p1");
+    const v = viewOf(h);
+    h = withView(h, { ...v, settings: { ...v.settings, rate: 0.7 } });
+    h = withView(h, { ...viewOf(h), settings: { ...viewOf(h).settings, line: null } });
+    expect(h.active).toBeNull();
+    expect(h.profiles[0].settings.rate).toBe(0.7);
+    expect(h.profiles[1].settings.rate).toBe(0.95);
+  });
+  it("an unchanged view returns the same household", () => {
+    const h = selectProfile(two(), "p2");
+    expect(withView(h, viewOf(h))).toBe(h);
+  });
+  it("removing the active profile returns to the chooser", () => {
+    const h = removeProfile(selectProfile(two(), "p2"), "p2");
+    expect(h.active).toBeNull();
+    expect(h.profiles).toHaveLength(1);
+  });
+  it("renames and changes the avatar, never to an empty name", () => {
+    let h = editProfile(two(), "p2", { name: "Anna", avatar: "🐢" });
+    h = editProfile(h, "p2", { name: "  " });
+    expect(h.profiles[1]).toMatchObject({ name: "Anna", avatar: "🐢" });
+  });
+  it("migrates alpha 0.1 state into an adult and a kids profile", () => {
+    const s = defaultState();
+    s.decks = [deck("a", 1)];
+    s.progress = { "a-0": { reps: 1, lapses: 0, ease: 2.5, interval: 1, due: 2, last: 1 } };
+    s.kids = { stars: 4, words: { "a-0": { level: 1, sticker: true, seen: 1 } } };
+    s.settings = { ...s.settings, line: "kids", rate: 0.8 };
+    const h = migrateHousehold(s);
+    expect(h.decks).toEqual(s.decks);
+    expect(h.profiles.map((p) => [p.name, p.kind])).toEqual([["Ja", "adults"], ["Dziecko", "kids"]]);
+    expect(h.profiles[0].progress).toEqual(s.progress);
+    expect(h.profiles[1].kids.stars).toBe(4);
+    expect(h.profiles[1].settings.rate).toBe(0.8);
+    expect(h.active).toBe("p2");
+  });
+  it("a fresh install has no profiles; junk is dropped", () => {
+    expect(migrateHousehold(defaultState()).profiles).toEqual([]);
+    expect(migrateHousehold(null)).toEqual(emptyHousehold());
+    const h = migrateHousehold({ schema: 2, decks: [], profiles: [{ id: "x", name: "A", kind: "alien" }, { id: "y", name: "B", kind: "kids" }], active: "x" });
+    expect(h.profiles.map((p) => p.id)).toEqual(["y"]);
+    expect(h.active).toBeNull();
   });
 });
 
@@ -135,5 +211,14 @@ describe("kids line", () => {
     expect(next).toEqual(expect.arrayContaining(["k-6", "k-7", "k-8"]));
     const isl = islands([d], [{ format: "echo-book", version: 1, id: "b", title: "B", units: [{ id: "u1", title: "One" }, { id: "u2", title: "Two" }] }], s);
     expect(isl.map((i) => [i.title, i.lamps, !!i.deck])).toEqual([["One", 2, true], ["Two", 0, false]]);
+  });
+});
+
+describe("automatic backups", () => {
+  it("writes one file a day and keeps the newest five", () => {
+    const files = ["echo-2026-11-01.json", "echo-2026-11-03.json", "echo-2026-11-02.json", "echo-2026-11-04.json", "echo-2026-11-05.json", "notes.txt"];
+    expect(backupPlan(files, "2026-11-06")).toEqual({ write: "echo-2026-11-06.json", remove: ["echo-2026-11-01.json"] });
+    expect(backupPlan(["echo-2026-11-06.json"], "2026-11-06")).toEqual({ write: null, remove: [] });
+    expect(isoDay(new Date(2026, 0, 5))).toBe("2026-01-05");
   });
 });

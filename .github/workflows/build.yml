@@ -1,8 +1,10 @@
 name: Build
 
 # Testy i wersja web budują się przy każdej zmianie (ok. 1 minuty na Linuksie).
-# Instalatory są drogie w minutach (macOS liczy się 10x, Windows 2x w repozytorium prywatnym),
+# Instalatory są drogie w minutach (Windows liczy się 2x w repozytorium prywatnym),
 # więc buduje się je tylko ręcznie: Actions → Build → Run workflow → wybór platformy.
+# Na razie tylko Windows i Android. macOS (10x) i iOS wrócą, gdy znajdą się odbiorcy:
+# desktop.yml przyjmuje os: macos-latest z args/targets dla universal-apple-darwin.
 on:
   workflow_dispatch:
     inputs:
@@ -10,7 +12,7 @@ on:
         description: "Co zbudować"
         type: choice
         default: android
-        options: [android, windows, macos, all, none]
+        options: [android, windows, all, none]
   pull_request:
     paths:
       - "app/**"
@@ -57,16 +59,6 @@ jobs:
     uses: ./.github/workflows/desktop.yml
     with:
       os: windows-latest
-
-  macos:
-    name: macOS (Intel + Apple Silicon)
-    needs: test
-    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["macos","all"]'), inputs.platform)
-    uses: ./.github/workflows/desktop.yml
-    with:
-      os: macos-latest
-      args: "--target universal-apple-darwin"
-      targets: "aarch64-apple-darwin,x86_64-apple-darwin"
 
   android:
     name: Android (APK)

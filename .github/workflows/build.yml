@@ -89,9 +89,22 @@ jobs:
           workspaces: app/src-tauri -> target
       - run: npm ci
       - run: npx tauri android init --ci
-      # Replace the generated MainActivity with ours (passes system bar insets to the web app).
+      # Stable signing key from repository secrets, see docs/android-signing.md.
+      - name: Signing key
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE" ] || [ -z "$PASSWORD" ]; then
+            echo "::warning::No ANDROID_KEYSTORE_BASE64/ANDROID_KEYSTORE_PASSWORD secrets: this APK is signed with a throwaway debug key and will not install over an earlier version."
+            exit 0
+          fi
+          echo "$KEYSTORE" | base64 -d > src-tauri/gen/android/echo.jks
+          printf 'storeFile=echo.jks\npassword=%s\nkeyAlias=echo\n' "$PASSWORD" > src-tauri/gen/android/keystore.properties
+      # Replace the generated MainActivity with ours (passes system bar insets to the web app)
+      # and sign with the stable key when keystore.properties exists.
       - run: node scripts/android-shell.mjs
-      # The debug build is signed with the debug key, so it can be installed straight from the file.
+      # Debug build type (proven on devices so far), signed with the stable key when the secrets are set.
       - run: npx tauri android build --apk --debug --target aarch64 --ci
       - uses: actions/upload-artifact@v4
         with:

@@ -1,5 +1,5 @@
-import type { AppState, Audience, Book, Card, Deck } from "./types";
-import { defaultState } from "./types";
+import type { Audience, Book, Card, Deck } from "./types";
+import { migrateHousehold, type Household } from "./profiles";
 
 export class DeckError extends Error {}
 
@@ -79,31 +79,19 @@ export function mergeDecks(bundled: Deck[], user: Deck[]): Deck[] {
 
 export const BACKUP_FORMAT = "echo-backup";
 
-export function exportBackup(s: AppState): string {
-  return JSON.stringify({ format: BACKUP_FORMAT, version: 1, exportedAt: new Date().toISOString(), state: s }, null, 1);
+/** A backup holds the whole household: shared decks and every profile. */
+export function exportBackup(h: Household, now = new Date()): string {
+  return JSON.stringify({ format: BACKUP_FORMAT, version: 2, exportedAt: now.toISOString(), state: h }, null, 1);
 }
 
-export function parseBackup(text: string): AppState {
-  let data: { format?: string; state?: Partial<AppState> };
+/** Reads a backup; version 1 backups (a single state from alpha 0.1) are converted to profiles. */
+export function parseBackup(text: string): Household {
+  let data: { format?: string; state?: unknown };
   try {
     data = JSON.parse(text);
   } catch {
     throw new DeckError("Plik nie jest poprawnym JSON-em.");
   }
   if (data?.format !== BACKUP_FORMAT || !data.state) throw new DeckError("To nie jest kopia zapasowa Echo.");
-  return migrate(data.state);
-}
-
-/** Fills in missing fields so older saves can still be loaded. */
-export function migrate(raw: Partial<AppState> | null | undefined): AppState {
-  const d = defaultState();
-  if (!raw || typeof raw !== "object") return d;
-  return {
-    schema: 1,
-    decks: Array.isArray(raw.decks) ? raw.decks : [],
-    progress: raw.progress ?? {},
-    log: raw.log ?? {},
-    kids: { stars: raw.kids?.stars ?? 0, words: raw.kids?.words ?? {} },
-    settings: { ...d.settings, ...(raw.settings ?? {}) },
-  };
+  return migrateHousehold(data.state);
 }

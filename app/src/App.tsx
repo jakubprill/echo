@@ -7,6 +7,7 @@ import type { Audience } from "./core/types";
 import { decksFor, update, useAppState } from "./state/store";
 import { Icon } from "./ui/icons";
 import { Bat } from "./ui/Bat";
+import { setDarkSystemBars } from "./platform/insets";
 
 /** The "system" theme follows the host (Claude artifact) or the operating system. */
 function useSystemDark(): boolean {
@@ -42,6 +43,7 @@ export function App() {
 
   useEffect(() => {
     document.body.dataset.echoTheme = applied;
+    setDarkSystemBars(applied !== "light");
   }, [applied]);
 
   return (

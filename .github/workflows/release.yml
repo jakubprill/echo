@@ -116,6 +116,8 @@ jobs:
           workspaces: app/src-tauri -> target
       - run: npm ci
       - run: npx tauri android init --ci
+      # Replace the generated MainActivity with ours (passes system bar insets to the web app).
+      - run: node scripts/android-shell.mjs
       # Debug build: signed with a debug key, so it installs straight from the file.
       - run: npx tauri android build --apk --debug --target aarch64 --ci --config "{\"version\":\"$ECHO_VERSION\"}"
       - name: Name the APK

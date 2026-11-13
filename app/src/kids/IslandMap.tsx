@@ -6,7 +6,7 @@ const COLORS = ["var(--topic-animals)", "var(--topic-food)", "var(--topic-toys)"
 
 /** Islands sit on a wavy path: x grows evenly, y alternates between two rows. */
 function place(i: number, n: number): { x: number; y: number } {
-  const x = n === 1 ? 50 : 9 + (i * 79) / (n - 1);
+  const x = n === 1 ? 50 : (i * 100) / (n - 1);
   const y = (i % 2 === 0 ? 30 : 68) + (i % 4 < 2 ? -3 : 3);
   return { x, y };
 }

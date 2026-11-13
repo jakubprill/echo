@@ -1,0 +1,61 @@
+/* Tokeny z design systemu Echo: jedne nazwy, trzy zestawy wartości (jasny, ciemny, Kids).
+   Komponenty używają wyłącznie tokenów; linię i motyw przełącza data-theme na .echo. */
+.echo,
+.echo[data-theme="light"] {
+  --bg: #f1f4f2; --surface: #ffffff; --sunk: #e4eae6; --line: #cbd5cf; --fg: #16241e; --muted: #5b6b63;
+  --accent: #0e6b5c; --accent-ink: #ffffff; --accent-soft: #d3ebe4; --accent-edge: #0a5246;
+  --card: #ffffff; --card-ink: #16241e; --card-muted: #5b6b63; --card-edge: #cbd5cf;
+  --again: #b3261e; --hard: #a15c00; --good: #0e6b5c; --easy: #2453a6;
+  --again-soft: #f8dedb; --hard-soft: #f7e6cc; --good-soft: #d3ebe4; --easy-soft: #dce6f7;
+  --topic-animals: #2f7d5b; --topic-food: #b4424f; --topic-toys: #2e5fae; --topic-school: #7b46b8;
+  --bat-body: #8b7ae6; --bat-wing: #6d5bd0; --bat-belly: #c4b8ff;
+  --focus: #2453a6;
+  --shadow-card: 0 1px 2px rgba(22, 36, 30, 0.08), 0 8px 24px rgba(22, 36, 30, 0.08);
+  --f-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-kd: "Baloo 2", "Andika", system-ui, sans-serif;
+  --f-kb: "Andika", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-kids: 28px;
+  --gutter-l: max(clamp(16px, 4vw, 48px), env(safe-area-inset-left, 0px));
+  --gutter-r: max(clamp(16px, 4vw, 48px), env(safe-area-inset-right, 0px));
+  color-scheme: light;
+}
+.echo[data-theme="dark"] {
+  --bg: #0f1714; --surface: #17221e; --sunk: #1f2c27; --line: #2e3e37; --fg: #e6efea; --muted: #93a69c;
+  --accent: #4fc2a8; --accent-ink: #06231c; --accent-soft: #163a31; --accent-edge: #2e8f79;
+  --card: #17221e; --card-ink: #e6efea; --card-muted: #93a69c; --card-edge: #2e3e37;
+  --again: #f2867c; --hard: #e7ae5a; --good: #4fc2a8; --easy: #8db1f2;
+  --again-soft: #3a1e1c; --hard-soft: #3a2c17; --good-soft: #163a31; --easy-soft: #1c2a44;
+  --topic-animals: #6fcf9f; --topic-food: #f08a96; --topic-toys: #8db1f2; --topic-school: #c9a4f2;
+  --focus: #8db1f2;
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+.echo[data-theme="kids"] {
+  --bg: #1e1b4b; --surface: #2b2670; --sunk: #16133d; --line: #4a4499; --fg: #fff8e7; --muted: #b9b4e6;
+  --accent: #facc15; --accent-ink: #2b2350; --accent-soft: #3d3570; --accent-edge: #b48c00;
+  --card: #fff8e7; --card-ink: #2b2350; --card-muted: #5d5490; --card-edge: #d9c9a3;
+  --again: #fb7185; --hard: #fdba74; --good: #34d399; --easy: #60a5fa;
+  --again-soft: #4a2340; --hard-soft: #4a3423; --good-soft: #d1fae5; --easy-soft: #1f3366;
+  --topic-animals: #34d399; --topic-food: #fb7185; --topic-toys: #60a5fa; --topic-school: #c084fc;
+  --focus: #60a5fa;
+  --shadow-card: 0 8px 0 #d9c9a3;
+  color-scheme: dark;
+}
+
+html, body, #root { height: 100%; }
+body { margin: 0; background: #f1f4f2; overscroll-behavior: none; }
+body[data-echo-theme="dark"] { background: #0f1714; }
+body[data-echo-theme="kids"] { background: #1e1b4b; }
+
+.echo { height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--f-body); -webkit-tap-highlight-color: transparent; }
+.echo *, .echo *::before, .echo *::after { box-sizing: border-box; }
+:where(.echo) :where(button, input, select, textarea) { font: inherit; color: inherit; }
+:where(.echo) button { cursor: pointer; touch-action: manipulation; }
+.echo :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+:where(.echo) :where(h1, h2, p) { margin: 0; }
+.echo .icon { flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .echo *, .echo *::before, .echo *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

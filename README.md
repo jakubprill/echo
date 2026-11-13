@@ -10,6 +10,22 @@ Aplikacja do nauki słówek angielskich dla osób mówiących po polsku: fiszki 
   <img src="docs/slowka.png" width="250" alt="Lista słówek i wczytane talie">
 </p>
 
+## Wersja alfa (nowa aplikacja)
+
+W katalogu [`app/`](app/) powstaje nowa wersja Echo: jedna aplikacja na Windows, macOS, Androida i iOS (React + TypeScript + Tauri 2) z dwiema liniami, **Echo** dla dorosłych i **Echo Kids** dla dzieci. Jak jest zbudowana i jakie decyzje czekają na przegląd, opisuje [`docs/architektura.md`](docs/architektura.md).
+
+```sh
+cd app
+npm install
+npm run dev          # przeglądarka, http://localhost:1420
+npm test             # testy logiki
+npm run tauri dev    # okno desktopowe (wymaga Rust)
+```
+
+Aplikacja dołącza talie z katalogu wskazanego przez `ECHO_CONTENT_DIR` (domyślnie [`examples/`](examples/)). Instalatory dla Windows i macOS oraz APK buduje workflow **Build**; pliki są w artefaktach przebiegu w zakładce Actions.
+
+Poniżej opis dotychczasowej wersji w jednym pliku `index.html`.
+
 ## Co potrafi
 
 - **Fiszki z powtórkami w odstępach.** Najpierw z angielskiego na polski, a po pierwszej udanej powtórce także w drugą stronę. Cztery oceny (Nie wiem, Trudne, Dobrze, Łatwe) i dzienny limit nowych słówek.

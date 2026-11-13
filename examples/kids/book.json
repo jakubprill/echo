@@ -1,0 +1,26 @@
+{
+  "format": "echo-book",
+  "version": 1,
+  "id": "przyklad-kids",
+  "title": "Przykład: Echo Kids",
+  "audience": "kids",
+  "from": "en",
+  "to": "pl",
+  "units": [
+    {
+      "id": "animals",
+      "title": "Animals",
+      "deck": "animals.json"
+    },
+    {
+      "id": "food",
+      "title": "Food",
+      "deck": "food.json"
+    },
+    {
+      "id": "toys",
+      "title": "Toys",
+      "status": "todo"
+    }
+  ]
+}

@@ -22,7 +22,7 @@ npm test             # testy logiki
 npm run tauri dev    # okno desktopowe (wymaga Rust)
 ```
 
-Aplikacja dołącza talie z katalogu wskazanego przez `ECHO_CONTENT_DIR` (domyślnie [`examples/`](examples/)). Instalatory dla Windows i macOS oraz APK buduje workflow **Build**; pliki są w artefaktach przebiegu w zakładce Actions.
+Aplikacja dołącza talie z katalogu wskazanego przez `ECHO_CONTENT_DIR` (domyślnie [`examples/`](examples/)). Instalatory dla Windows i macOS oraz APK buduje się ręcznie: Actions → **Build** → Run workflow → wybór platformy. Pliki są w artefaktach przebiegu.
 
 Poniżej opis dotychczasowej wersji w jednym pliku `index.html`.
 

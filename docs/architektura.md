@@ -91,7 +91,7 @@ Postęp jest przypięty do `id` karty, dlatego `id` nie może się zmieniać mi�
 | Android | `npx tauri android build --apk --debug` | `.apk` |
 | iOS | `npm run tauri ios dev` na Macu z Xcode | uruchomienie na telefonie |
 
-Workflow `.github/workflows/build.yml` uruchamia testy i buduje web, Windows, macOS i Android przy każdym pull requeście dotykającym `app/`. Gotowe pliki są w artefaktach przebiegu.
+Workflow `.github/workflows/build.yml` przy każdej zmianie w `app/` uruchamia tylko testy i build web (ok. minuty na Linuksie). Instalatory Windows i macOS oraz APK buduje się ręcznie (Run workflow z wyborem platformy), bo w repozytorium prywatnym minuty macOS liczą się 10x, a Windows 2x. Gotowe pliki są w artefaktach przebiegu.
 
 ## Decyzje do przeglądu
 

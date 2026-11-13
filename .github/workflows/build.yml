@@ -1,18 +1,27 @@
 name: Build
 
+# Testy i wersja web budują się przy każdej zmianie (ok. 1 minuty na Linuksie).
+# Instalatory są drogie w minutach (macOS liczy się 10x, Windows 2x w repozytorium prywatnym),
+# więc buduje się je tylko ręcznie: Actions → Build → Run workflow → wybór platformy.
 on:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: "Co zbudować"
+        type: choice
+        default: android
+        options: [android, windows, macos, all, none]
   pull_request:
     paths:
       - "app/**"
       - "examples/**"
-      - ".github/workflows/build.yml"
+      - ".github/workflows/*.yml"
   push:
     branches: [main]
     paths:
       - "app/**"
       - "examples/**"
-      - ".github/workflows/build.yml"
+      - ".github/workflows/*.yml"
 
 concurrency:
   group: build-${{ github.ref }}
@@ -41,49 +50,28 @@ jobs:
           name: echo-web
           path: app/dist
 
-  desktop:
-    name: ${{ matrix.name }}
+  windows:
+    name: Windows
     needs: test
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Windows
-            os: windows-latest
-            args: ""
-            targets: ""
-          - name: macOS (Intel + Apple Silicon)
-            os: macos-latest
-            args: "--target universal-apple-darwin"
-            targets: "aarch64-apple-darwin,x86_64-apple-darwin"
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: app/package-lock.json
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.targets }}
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: app/src-tauri -> target
-      - run: npm ci
-      - run: npx tauri build ${{ matrix.args }} --ci
-        shell: bash
-      - uses: actions/upload-artifact@v4
-        with:
-          name: echo-${{ matrix.os }}
-          path: |
-            app/src-tauri/target/**/release/bundle/msi/*.msi
-            app/src-tauri/target/**/release/bundle/nsis/*.exe
-            app/src-tauri/target/**/release/bundle/dmg/*.dmg
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["windows","all"]'), inputs.platform)
+    uses: ./.github/workflows/desktop.yml
+    with:
+      os: windows-latest
+
+  macos:
+    name: macOS (Intel + Apple Silicon)
+    needs: test
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["macos","all"]'), inputs.platform)
+    uses: ./.github/workflows/desktop.yml
+    with:
+      os: macos-latest
+      args: "--target universal-apple-darwin"
+      targets: "aarch64-apple-darwin,x86_64-apple-darwin"
 
   android:
     name: Android (APK)
     needs: test
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["android","all"]'), inputs.platform)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { hasEnglishVoice, ttsAvailable } from "../platform/tts";
 
-/** Ostrzeżenie, gdy system nie ma angielskiego głosu (częste na polskim Windowsie). */
+/** Warning shown when the system has no English voice (common on Polish Windows). */
 export function VoiceNotice() {
   const [missing, setMissing] = useState(false);
   useEffect(() => {

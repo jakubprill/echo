@@ -1,9 +1,9 @@
-# Talie słówek trzymamy poza repozytorium (mogą zawierać chronione treści).
-# Wyjątek: examples/ z taliami napisanymi dla projektu.
+# Vocabulary decks stay out of the repository (they may contain copyrighted content).
+# Exception: examples/ with decks written for this project.
 *.json
 !examples/**/*.json
 
-# Pliki konfiguracyjne aplikacji są potrzebne w repozytorium.
+# App configuration files belong in the repository.
 !app/*.json
 !app/src-tauri/**/*.json
 

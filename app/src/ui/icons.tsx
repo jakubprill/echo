@@ -1,4 +1,4 @@
-// Wspólna ikonografia obu linii: siatka 24×24, kreska 2 px, kolor z currentColor.
+// Shared iconography for both lines: 24×24 grid, 2 px stroke, colour from currentColor.
 const PATHS = {
   home: <><path d="M4 11l8-7 8 7" /><path d="M6 9.5V20h12V9.5" /><path d="M10 20v-5h4v5" /></>,
   deck: <><rect x="4" y="7" width="13" height="14" rx="2.5" /><path d="M8 3.5h9.5A2.5 2.5 0 0 1 20 6v11" /></>,

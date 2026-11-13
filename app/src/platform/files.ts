@@ -1,9 +1,9 @@
-// Port plików: wybór pliku do wczytania i zapis pliku.
+// Files port: picking a file to load and saving a file.
 import { isTauri } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 
-/** Otwiera systemowe okno wyboru pliku i zwraca jego treść (null po anulowaniu). */
+/** Opens the system file picker and returns the file's contents (null if cancelled). */
 export function pickTextFile(accept = ".json,application/json"): Promise<{ name: string; text: string } | null> {
   return new Promise((resolve) => {
     const input = document.createElement("input");
@@ -18,7 +18,7 @@ export function pickTextFile(accept = ".json,application/json"): Promise<{ name:
   });
 }
 
-/** W artefakcie Claude przeglądarka blokuje pobieranie, więc zostaje kopiowanie tekstu. */
+/** In a Claude artifact the browser blocks downloads, so copying the text is the fallback. */
 export const canSaveFiles = (): boolean => __ECHO_TARGET__ !== "artifact";
 
 export async function saveTextFile(name: string, content: string): Promise<"saved" | "cancelled"> {

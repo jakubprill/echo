@@ -4,8 +4,8 @@ const MIN_EASE = 1.3;
 export const START_EASE = 2.5;
 
 /**
- * SM-2 z czterema ocenami. „Nie wiem” zeruje serię i karta wraca jeszcze dziś,
- * pozostałe oceny wydłużają odstęp. Funkcja czysta: nie zmienia argumentu.
+ * SM-2 with four grades. "Nie wiem" (Again) resets the streak and the card comes back today;
+ * the other grades lengthen the interval. Pure function: does not mutate its argument.
  */
 export function review(p: CardProgress | undefined, grade: Grade, today: number): CardProgress {
   const cur = p ?? { reps: 0, lapses: 0, ease: START_EASE, interval: 0, due: today, last: today };
@@ -24,7 +24,7 @@ export function review(p: CardProgress | undefined, grade: Grade, today: number)
   return { reps: reps + 1, lapses, ease, interval, due: today + interval, last: today };
 }
 
-/** Odstęp, który karta dostałaby po danej ocenie (do podpisów pod przyciskami). */
+/** The interval a card would get after a given grade (for the labels under the buttons). */
 export function previewInterval(p: CardProgress | undefined, grade: Grade): number {
   return review(p, grade, 0).interval;
 }

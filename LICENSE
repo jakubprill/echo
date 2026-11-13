@@ -9,7 +9,7 @@ Viewing the code and forking it on GitHub as permitted by the GitHub Terms of
 Service does not grant any of the rights listed above.
 
 Exceptions:
-- examples/podroze.json is dedicated to the public domain under CC0 1.0
+- examples/travel.json is dedicated to the public domain under CC0 1.0
   (https://creativecommons.org/publicdomain/zero/1.0/).
 - Third-party components keep their own licenses; see NOTICE.md.
 
@@ -19,12 +19,3 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF THE
 SOFTWARE.
 
----
-
-Copyright (c) 2026 Jakub Prill. Wszelkie prawa zastrzeżone.
-
-Kod jest publiczny wyłącznie do wglądu. Kopiowanie, modyfikowanie,
-rozpowszechnianie i wykorzystywanie oprogramowania lub jego części wymaga
-pisemnej zgody autora, chyba że zezwala na to bezwzględnie obowiązujące prawo.
-Wyjątki: plik examples/podroze.json (CC0 1.0) oraz komponenty zewnętrzne
-opisane w NOTICE.md.

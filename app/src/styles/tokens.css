@@ -1,5 +1,5 @@
-/* Tokeny z design systemu Echo: jedne nazwy, trzy zestawy wartości (jasny, ciemny, Kids).
-   Komponenty używają wyłącznie tokenów; linię i motyw przełącza data-theme na .echo. */
+/* Tokens from the Echo design system: one set of names, three sets of values (light, dark, Kids).
+   Components use tokens only; data-theme on .echo switches the line and theme. */
 .echo,
 .echo[data-theme="light"] {
   --bg: #f1f4f2; --surface: #ffffff; --sunk: #e4eae6; --line: #cbd5cf; --fg: #16241e; --muted: #5b6b63;

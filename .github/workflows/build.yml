@@ -1,15 +1,15 @@
 name: Build
 
-# Testy i wersja web budują się przy każdej zmianie (ok. 1 minuty na Linuksie).
-# Instalatory są drogie w minutach (Windows liczy się 2x w repozytorium prywatnym),
-# więc buduje się je tylko ręcznie: Actions → Build → Run workflow → wybór platformy.
-# Na razie tylko Windows i Android. macOS (10x) i iOS wrócą, gdy znajdą się odbiorcy:
-# desktop.yml przyjmuje os: macos-latest z args/targets dla universal-apple-darwin.
+# Tests and the web build run on every change (about a minute on Linux).
+# Installers are expensive in minutes (Windows counts 2x in a private repository),
+# so they are built on demand only: Actions → Build → Run workflow → choose a platform.
+# Windows and Android only for now. macOS (10x) and iOS will come back once there are users:
+# desktop.yml accepts os: macos-latest with args/targets for universal-apple-darwin.
 on:
   workflow_dispatch:
     inputs:
       platform:
-        description: "Co zbudować"
+        description: "What to build"
         type: choice
         default: android
         options: [android, windows, all, none]
@@ -35,7 +35,7 @@ defaults:
 
 jobs:
   test:
-    name: Testy i wersja web
+    name: Tests and web build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,8 +76,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      # Android SDK i NDK są preinstalowane na ubuntu-latest.
-      - name: Wskaż NDK
+      # The Android SDK and NDK are preinstalled on ubuntu-latest.
+      - name: Point to the NDK
         run: |
           echo "ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
           echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
@@ -89,7 +89,7 @@ jobs:
           workspaces: app/src-tauri -> target
       - run: npm ci
       - run: npx tauri android init --ci
-      # Wersja debug jest podpisana kluczem debug, więc da się ją zainstalować prosto z pliku.
+      # The debug build is signed with the debug key, so it can be installed straight from the file.
       - run: npx tauri android build --apk --debug --target aarch64 --ci
       - uses: actions/upload-artifact@v4
         with:

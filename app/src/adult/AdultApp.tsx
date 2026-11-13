@@ -21,7 +21,7 @@ const TABS: { name: "home" | "decks" | "quiz" | "progress" | "settings"; icon: I
 export function AdultApp() {
   const [view, setView] = useState<View>({ name: "home" });
   const active = view.name === "study" ? "home" : view.name;
-  // Nauka i quiz zajmują cały ekran: w trakcie sesji nawigacja nie rozprasza.
+  // Study and quiz take the full screen so navigation does not distract during a session.
   const immersive = view.name === "study";
   return (
     <div className={`shell${immersive ? " shell-immersive" : ""}`}>

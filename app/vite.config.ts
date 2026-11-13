@@ -6,6 +6,10 @@ import path from "node:path";
 
 const host = process.env.TAURI_DEV_HOST;
 
+// The release workflow passes the version being published; local builds use package.json.
+const appVersion: string =
+  process.env.ECHO_VERSION || JSON.parse(fs.readFileSync(path.resolve(__dirname, "package.json"), "utf8")).version;
+
 // Content (decks and books) is bundled at build time from the ECHO_CONTENT_DIR
 // directory. The default is ../examples, i.e. only decks written for this
 // repository. Private decks live outside the repo and only go into private builds.
@@ -39,7 +43,10 @@ function echoContent(): Plugin {
 export default defineConfig(({ mode }) => ({
   plugins: [react(), echoContent(), ...(mode === "artifact" ? [viteSingleFile()] : [])],
   base: "./",
-  define: { __ECHO_TARGET__: JSON.stringify(mode === "artifact" ? "artifact" : "app") },
+  define: {
+    __ECHO_TARGET__: JSON.stringify(mode === "artifact" ? "artifact" : "app"),
+    __ECHO_VERSION__: JSON.stringify(appVersion),
+  },
   build: { outDir: mode === "artifact" ? "dist-artifact" : "dist" },
   clearScreen: false,
   server: {

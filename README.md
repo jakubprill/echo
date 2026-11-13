@@ -24,6 +24,15 @@ npm run tauri dev    # desktop window (requires Rust)
 
 The app bundles decks from the directory set in `ECHO_CONTENT_DIR` (default: [`examples/`](examples/)). The Windows installer and the Android APK are built on demand (macOS and iOS are disabled in CI for now): Actions → **Build** → Run workflow → choose a platform. The files are attached to the run as artifacts.
 
+### Releases
+
+Alpha builds for Android and Windows are published on the [Releases](https://github.com/jakubprill/echo/releases) page. Versions follow [SemVer](https://semver.org/), and alpha versions are marked as pre-releases:
+
+- `Echo-<version>-android-arm64.apk`
+- `Echo-<version>-windows-x64-setup.exe`
+
+To publish a release: Actions → **Release** → Run workflow → enter the version without the leading `v` (for example `0.1.0-alpha.2`). The workflow runs the tests, builds both installers and creates the `v<version>` tag and release. The APK is a debug build signed with a per-build key, so uninstall the previous version before installing a new one.
+
 The rest of this README describes the original single-file version in `index.html`.
 
 ## Features

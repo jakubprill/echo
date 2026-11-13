@@ -1,6 +1,6 @@
 # Contributing
 
-Echo is a personal project and is not open to outside code contributions for now (see [LICENSE](LICENSE)). Bug reports and ideas are welcome as issues. These conventions apply to everyone working in the repository, including AI assistants.
+Echo is a small personal project released under the [MIT License](LICENSE). Bug reports and ideas are welcome as issues; please open an issue before starting a larger pull request. By contributing you agree that your contribution is licensed under the MIT License. These conventions apply to everyone working in the repository, including AI assistants.
 
 ## Language
 

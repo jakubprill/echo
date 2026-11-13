@@ -121,4 +121,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository conventions and [SECUR
 
 ## License
 
-All rights reserved; see [LICENSE](LICENSE). The source code is public for viewing. Third-party components and their licenses are listed in [NOTICE.md](NOTICE.md).
+[MIT](LICENSE). `examples/travel.json` is additionally dedicated to the public domain under CC0 1.0. The MIT license covers this repository's code only: vocabulary decks loaded into the app keep their own rights. Third-party components and their licenses are listed in [NOTICE.md](NOTICE.md).

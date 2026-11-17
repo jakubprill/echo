@@ -106,6 +106,11 @@ jobs:
       - run: node scripts/android-shell.mjs
       # Debug build type (proven on devices so far), signed with the stable key when the secrets are set.
       - run: npx tauri android build --apk --debug --target aarch64 --ci
+      # Print the signing certificate so each run shows which key signed the APK (fingerprints are not secret).
+      - name: Signing certificate
+        run: |
+          apk="$(find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' | head -n 1)"
+          "$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)/apksigner" verify --print-certs "$apk" | grep -E "Signer #1 certificate (DN|SHA-256)"
       - uses: actions/upload-artifact@v4
         with:
           name: echo-android-apk

@@ -139,7 +139,8 @@ jobs:
         run: |
           apk="$(find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' | head -n 1)"
           apksigner="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)/apksigner"
-          "$apksigner" verify --verbose --print-certs "$apk" | grep -iE "verified|certificate (DN|SHA-256)" | grep -v WARNING
+          out="$("$apksigner" verify --verbose --print-certs "$apk")"
+          echo "$out" | grep -iE "verified using|certificate (DN|SHA-256)" || echo "$out"
       - name: Name the APK
         run: |
           mkdir -p out

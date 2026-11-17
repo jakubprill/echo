@@ -33,7 +33,7 @@ export function Reward({ won, stars, onAgain, onMap }: { won: Card[]; stars: num
           ))}
         </div>
       </div>
-      <div className="kfoot">
+      <div className="kfoot kfoot-2">
         <button className="kbtn kbtn-quiet" onClick={onMap}><Icon name="map" size={32} /> Mapa</button>
         <button className="kbtn" onClick={onAgain}>Jeszcze raz ▶</button>
       </div>

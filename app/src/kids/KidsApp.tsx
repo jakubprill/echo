@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { setLine } from "../App";
 import { islands, type Island } from "../core/kids";
-import type { Card } from "../core/types";
 import { bundledBooks, decksFor, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
-import { Game } from "./Game";
+import { setSfxEnabled } from "../platform/sfx";
+import { Game, type RoundResult } from "./Game";
 import { IslandMap } from "./IslandMap";
 import { Album, Reward } from "./Reward";
 
-type View = { name: "map" | "album" } | { name: "game"; island: Island; round: number } | { name: "reward"; island: Island; won: Card[]; round: number };
+type View = { name: "map" | "album" } | { name: "game"; island: Island; round: number } | { name: "reward"; island: Island; result: RoundResult; round: number };
 
 export function Jar({ stars }: { stars: number }) {
-  return <span className="jar" aria-label={`Gwiazdki: ${stars}`}><i />{stars}</span>;
+  return <span className="jar" aria-label={`Gwiazdki: ${stars}`}><i /><b key={stars}>{stars}</b></span>;
 }
 
 /** Leaving kids mode requires holding the button so a child does not exit by accident. */
@@ -57,12 +57,13 @@ export function KidsApp() {
   const s = useAppState();
   const [view, setView] = useState<View>({ name: "map" });
   const decks = decksFor(s, "kids");
+  setSfxEnabled(s.settings.sounds !== false);
   const list = useMemo(() => islands(decks, bundledBooks.filter((b) => decks.some((d) => d.book === b.id)), s), [decks, s]);
 
   if (view.name === "game")
-    return <Game key={`${view.island.id}-${view.round}`} island={view.island} onExit={() => setView({ name: "map" })} onDone={(won) => setView({ name: "reward", island: view.island, won, round: view.round })} />;
+    return <Game key={`${view.island.id}-${view.round}`} island={view.island} onExit={() => setView({ name: "map" })} onDone={(result) => setView({ name: "reward", island: view.island, result, round: view.round })} />;
   if (view.name === "reward")
-    return <Reward won={view.won} stars={s.kids.stars} onAgain={() => setView({ name: "game", island: list.find((i) => i.id === view.island.id) ?? view.island, round: view.round + 1 })} onMap={() => setView({ name: "map" })} />;
+    return <Reward result={view.result} before={view.island} after={list.find((i) => i.id === view.island.id) ?? view.island} stars={s.kids.stars} onAgain={() => setView({ name: "game", island: list.find((i) => i.id === view.island.id) ?? view.island, round: view.round + 1 })} onMap={() => setView({ name: "map" })} />;
   if (view.name === "album") return <Album islands={list} onBack={() => setView({ name: "map" })} />;
 
   return (

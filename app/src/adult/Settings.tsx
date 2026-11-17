@@ -75,6 +75,9 @@ export function Settings() {
         <label className="field field-check" htmlFor="set-auto"><span>Czytaj słówko po pokazaniu karty</span>
           <input id="set-auto" type="checkbox" checked={st.autoSpeak} onChange={(e) => set({ autoSpeak: e.target.checked })} />
         </label>
+        <label className="field field-check" htmlFor="set-sounds"><span>Dźwięki gry w Echo Kids</span>
+          <input id="set-sounds" type="checkbox" checked={st.sounds !== false} onChange={(e) => set({ sounds: e.target.checked })} />
+        </label>
         <div><button className="btn btn-quiet" onClick={() => say("It was pure serendipity that we met in Lisbon.")}><Icon name="speaker" /> Wypróbuj głos</button></div>
       </section>
 

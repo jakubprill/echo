@@ -35,7 +35,7 @@ export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: 
           {islands.map((isl, i) => (
             <button
               key={isl.id}
-              className={`isl${isl.deck ? "" : " lock"}${i === sel ? " cur" : ""}`}
+              className={`isl${isl.deck ? "" : " lock"}${isl.lamps >= 3 ? " done" : ""}${i === sel ? " cur" : ""}`}
               style={{ left: `${pos[i].x}%`, top: `${pos[i].y}%`, background: COLORS[i % COLORS.length] }}
               onClick={() => isl.deck && setSel(i)}
               aria-disabled={!isl.deck}
@@ -43,6 +43,7 @@ export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: 
               aria-label={isl.deck ? `Wyspa ${isl.title}, naklejki: ${isl.stickers} z ${isl.total}` : `Wyspa ${isl.title}, wkrótce`}
             >
               <span className="isl-e">{isl.deck ? isl.emoji : "🔒"}</span>
+              {isl.lamps >= 3 && <span className="isl-flag" aria-hidden="true">🚩</span>}
               <span className="lamps">{[0, 1, 2].map((k) => <i key={k} className={k < isl.lamps ? "on" : ""} />)}</span>
               <b>{isl.title}</b>
             </button>

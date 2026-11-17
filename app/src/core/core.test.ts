@@ -4,7 +4,7 @@ import { review } from "./sm2";
 import { applyGrade, buildQueue, counts, markDueNow, requeue } from "./session";
 import { DeckError, exportBackup, mergeDecks, parseBackup, parseDeckFile } from "./deck";
 import { buildQuiz, checkTyped } from "./quiz";
-import { applyKidsAnswer, buildRound, islands } from "./kids";
+import { applyKidsAnswer, bestStreak, buildRound, islands, roundStars, stickerTier } from "./kids";
 import { streak } from "./stats";
 
 const deck = (id: string, n: number, extra: Partial<Deck> = {}): Deck => ({
@@ -136,4 +136,32 @@ describe("kids line", () => {
     const isl = islands([d], [{ format: "echo-book", version: 1, id: "b", title: "B", units: [{ id: "u1", title: "One" }, { id: "u2", title: "Two" }] }], s);
     expect(isl.map((i) => [i.title, i.lamps, !!i.deck])).toEqual([["One", 2, true], ["Two", 0, false]]);
   });
+
+  it("rates a round with one to three stars", () => {
+    expect([0, 1, 2, 3, 4, 5, 6].map((n) => roundStars(n, 6))).toEqual([1, 1, 1, 2, 2, 3, 3]);
+    expect(roundStars(0, 0)).toBe(1);
+    expect(roundStars(3, 3)).toBe(3);
+  });
+
+  it("measures the longest first-try streak", () => {
+    expect(bestStreak([])).toBe(0);
+    expect(bestStreak([true, true, false, true, true, true])).toBe(3);
+  });
+
+  it("turns stickers from bronze to gold as the word levels up", () => {
+    expect(stickerTier(undefined)).toBe(0);
+    let s = defaultState();
+    const id = d.cards[0].id;
+    const tiers: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      s = applyKidsAnswer(s, id, true);
+      tiers.push(stickerTier(s.kids.words[id]));
+    }
+    expect(tiers).toEqual([1, 2, 3, 3]);
+    s = applyKidsAnswer(s, id, false);
+    s = applyKidsAnswer(s, id, false);
+    s = applyKidsAnswer(s, id, false);
+    expect(stickerTier(s.kids.words[id])).toBe(1);
+  });
 });
+

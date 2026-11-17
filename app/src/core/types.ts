@@ -69,6 +69,8 @@ export type Settings = {
   rate: number;
   autoSpeak: boolean;
   newPerDay: number;
+  /** Game sounds in the kids line; missing in older saves means on. */
+  sounds?: boolean;
 };
 
 export type AppState = {

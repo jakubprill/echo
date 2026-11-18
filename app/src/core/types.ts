@@ -69,6 +69,10 @@ export type Settings = {
   rate: number;
   autoSpeak: boolean;
   newPerDay: number;
+  /** Game sounds in the kids line; missing in older saves means on. */
+  sounds?: boolean;
+  /** Kids map: all islands open at once instead of waking one after another. */
+  kidsOpenAll?: boolean;
 };
 
 export type AppState = {

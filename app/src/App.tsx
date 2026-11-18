@@ -117,12 +117,14 @@ function ProfileForm({ profile, first, onClose }: { profile?: Profile; first: bo
   const [kind, setKind] = useState<Audience>(profile?.kind ?? "adults");
   const [avatar, setAvatar] = useState(profile?.avatar ?? AVATARS[0]);
   const [confirm, setConfirm] = useState(false);
+  const [sounds, setSounds] = useState(profile?.settings.sounds !== false);
+  const [openAll, setOpenAll] = useState(profile?.settings.kidsOpenAll === true);
   const ok = cleanName(name) !== "";
 
   const save = () => {
     if (!ok) return;
     updateHousehold((h) => {
-      if (profile) return editProfile(h, profile.id, { name, avatar });
+      if (profile) return editProfile(h, profile.id, { name, avatar, ...(profile.kind === "kids" ? { kidsOptions: { sounds, kidsOpenAll: openAll } } : {}) });
       const next = addProfile(h, name, kind, avatar);
       // The very first profile starts learning straight away.
       return first ? selectProfile(next, next.profiles[next.profiles.length - 1].id) : next;
@@ -150,6 +152,16 @@ function ProfileForm({ profile, first, onClose }: { profile?: Profile; first: bo
             {AVATARS.map((a) => <button type="button" key={a} role="radio" aria-checked={a === avatar} onClick={() => setAvatar(a)}>{a}</button>)}
           </div>
         </div>
+        {profile?.kind === "kids" && (
+          <>
+            <label className="field field-check" htmlFor="profile-sounds"><span>Dźwięki gry</span>
+              <input id="profile-sounds" type="checkbox" checked={sounds} onChange={(e) => setSounds(e.target.checked)} />
+            </label>
+            <label className="field field-check" htmlFor="profile-open-all"><span>Wszystkie wyspy otwarte od razu</span>
+              <input id="profile-open-all" type="checkbox" checked={openAll} onChange={(e) => setOpenAll(e.target.checked)} />
+            </label>
+          </>
+        )}
         <div className="row">
           <button className="btn" type="submit" disabled={!ok}><Icon name="check" /> {profile ? "Zapisz" : "Dodaj profil"}</button>
           {!first && <button className="btn btn-quiet" type="button" onClick={onClose}>Anuluj</button>}

@@ -1,14 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { applyKidsAnswer, buildRound, type Island } from "../core/kids";
 import type { Card } from "../core/types";
 import { getState, say, update, useAppState } from "../state/store";
+import { sfx } from "../platform/sfx";
 import { Bat, type BatMood } from "../ui/Bat";
 import { Icon } from "../ui/icons";
 import { Jar } from "./KidsApp";
 
 const SLOW = 0.8;
 
-export function Game({ island, onExit, onDone }: { island: Island; onExit: () => void; onDone: (won: Card[]) => void }) {
+export type RoundResult = { won: Card[]; firstTries: boolean[] };
+type Flyer = { key: number; x: number; y: number; dx: number; dy: number };
+
+export function Game({ island, onExit, onDone }: { island: Island; onExit: () => void; onDone: (r: RoundResult) => void }) {
   const s = useAppState();
   const round = useMemo(() => buildRound(island.deck!, getState()), [island]);
   const [intro, setIntro] = useState(0);
@@ -16,7 +20,10 @@ export function Game({ island, onExit, onDone }: { island: Island; onExit: () =>
   const [missed, setMissed] = useState<string[]>([]);
   const [solved, setSolved] = useState(false);
   const [mood, setMood] = useState<BatMood>("idle");
+  const [streak, setStreak] = useState(0);
+  const [flyers, setFlyers] = useState<Flyer[]>([]);
   const won = useRef<Card[]>([]);
+  const firstTries = useRef<boolean[]>([]);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const inIntro = intro < round.intro.length;
   const q = round.questions[qi];
@@ -45,17 +52,36 @@ export function Game({ island, onExit, onDone }: { island: Island; onExit: () =>
     return () => clearTimeout(t);
   }, [intro, qi, inIntro, q, round, listen]);
 
-  const pick = (c: Card) => {
+  /** A star flies from the picked tile into the jar in the header. */
+  const flyStar = (from: HTMLElement) => {
+    const jar = document.querySelector(".kscreen .jar i");
+    if (!jar) return;
+    const a = from.getBoundingClientRect(), b = jar.getBoundingClientRect();
+    const x = a.left + a.width / 2, y = a.top + a.height / 2;
+    const f = { key: Date.now(), x, y, dx: b.left + b.width / 2 - x, dy: b.top + b.height / 2 - y };
+    setFlyers((l) => [...l, f]);
+    later(() => setFlyers((l) => l.filter((o) => o.key !== f.key)), 900);
+  };
+
+  const pick = (c: Card, el: HTMLElement) => {
     if (solved || !q) return;
     if (c.id === q.card.id) {
       const first = missed.length === 0;
+      const run = first ? streak + 1 : 0;
       setSolved(true);
+      setStreak(run);
       react("happy");
+      if (first) {
+        sfx.hit(run);
+        flyStar(el);
+      }
       say(first ? `Yes! ${c.en}` : c.en, SLOW);
-      update((st) => applyKidsAnswer(st, c.id, first));
+      firstTries.current.push(first);
       if (first) won.current.push(c);
+      // The jar counts up when the flying star lands; not cancelled on exit so the answer is always saved.
+      setTimeout(() => update((st) => applyKidsAnswer(st, c.id, first)), first ? 700 : 0);
       later(() => {
-        if (qi + 1 >= round.questions.length) onDone(won.current);
+        if (qi + 1 >= round.questions.length) onDone({ won: won.current, firstTries: firstTries.current });
         else {
           setQi(qi + 1);
           setMissed([]);
@@ -63,6 +89,8 @@ export function Game({ island, onExit, onDone }: { island: Island; onExit: () =>
         }
       }, 1500);
     } else if (!missed.includes(c.id)) {
+      sfx.miss();
+      setStreak(0);
       setMissed((m) => [...m, c.id]);
       react("think");
       later(() => say(q.card.en, SLOW), 600);
@@ -77,6 +105,7 @@ export function Game({ island, onExit, onDone }: { island: Island; onExit: () =>
       <div className="dots" aria-label={inIntro ? `Nowe słowo ${intro + 1} z ${round.intro.length}` : `Pytanie ${qi + 1} z ${round.questions.length}`}>
         {(inIntro ? round.intro : round.questions).map((_, i) => <i key={i} className={i < (inIntro ? intro : qi) ? "on" : i === (inIntro ? intro : qi) ? "cur" : ""} />)}
       </div>
+      {streak >= 2 && <span key={streak} className="combo" role="status">🔥 {streak}<span className="combo-l"> z rzędu!</span></span>}
       <Jar stars={s.kids.stars} />
     </header>
   );
@@ -116,13 +145,16 @@ export function Game({ island, onExit, onDone }: { island: Island; onExit: () =>
             const isTarget = o.id === q.card.id;
             const cls = solved && isTarget ? " ok" : missed.includes(o.id) ? " no" : missed.length > 0 && isTarget ? " show" : "";
             return (
-              <button key={o.id} className={`pick${cls}`} onClick={() => pick(o)} aria-label={missed.length > 0 || solved ? o.en : "obrazek"}>
+              <button key={o.id} className={`pick${cls}`} onClick={(e) => pick(o, e.currentTarget)} aria-label={missed.length > 0 || solved ? o.en : "obrazek"}>
                 <span>{o.emoji}</span>
               </button>
             );
           })}
         </div>
       </div>
+      {flyers.map((f) => (
+        <i key={f.key} className="flystar" aria-hidden="true" style={{ left: f.x, top: f.y, "--dx": `${f.dx}px`, "--dy": `${f.dy}px` } as CSSProperties} />
+      ))}
     </div>
   );
 }

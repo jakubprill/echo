@@ -4,7 +4,7 @@ import { review } from "./sm2";
 import { applyGrade, buildQueue, counts, markDueNow, requeue } from "./session";
 import { DeckError, exportBackup, mergeDecks, parseBackup, parseDeckFile } from "./deck";
 import { buildQuiz, checkTyped } from "./quiz";
-import { applyKidsAnswer, buildRound, islands } from "./kids";
+import { applyKidsAnswer, bestStreak, buildRound, islands, roundStars, stickerTier } from "./kids";
 import { streak } from "./stats";
 import { backupPlan, isoDay } from "./backups";
 import { addProfile, editProfile, emptyHousehold, migrateHousehold, removeProfile, selectProfile, viewOf, withView } from "./profiles";
@@ -212,6 +212,47 @@ describe("kids line", () => {
     const isl = islands([d], [{ format: "echo-book", version: 1, id: "b", title: "B", units: [{ id: "u1", title: "One" }, { id: "u2", title: "Two" }] }], s);
     expect(isl.map((i) => [i.title, i.lamps, !!i.deck])).toEqual([["One", 2, true], ["Two", 0, false]]);
   });
+
+  it("rates a round with one to three stars", () => {
+    expect([0, 1, 2, 3, 4, 5, 6].map((n) => roundStars(n, 6))).toEqual([1, 1, 1, 2, 2, 3, 3]);
+    expect(roundStars(0, 0)).toBe(1);
+    expect(roundStars(3, 3)).toBe(3);
+  });
+
+  it("measures the longest first-try streak", () => {
+    expect(bestStreak([])).toBe(0);
+    expect(bestStreak([true, true, false, true, true, true])).toBe(3);
+  });
+
+  it("turns stickers from bronze to gold as the word levels up", () => {
+    expect(stickerTier(undefined)).toBe(0);
+    let s = defaultState();
+    const id = d.cards[0].id;
+    const tiers: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      s = applyKidsAnswer(s, id, true);
+      tiers.push(stickerTier(s.kids.words[id]));
+    }
+    expect(tiers).toEqual([1, 2, 3, 3]);
+    s = applyKidsAnswer(s, id, false);
+    s = applyKidsAnswer(s, id, false);
+    s = applyKidsAnswer(s, id, false);
+    expect(stickerTier(s.kids.words[id])).toBe(1);
+  });
+
+  it("wakes islands one after another", () => {
+    const book = { format: "echo-book" as const, version: 1 as const, id: "b", title: "B", units: [{ id: "u1", title: "One" }, { id: "u2", title: "Two" }, { id: "u3", title: "Three" }] };
+    const d2 = deck("m", 9, { audience: "kids", book: "b", unit: "u2" });
+    const d3 = deck("n", 9, { audience: "kids", book: "b", unit: "u3" });
+    let s = defaultState();
+    expect(islands([d, d2, d3], [book], s).map((i) => i.asleep)).toEqual([false, true, true]);
+    expect(islands([d, d2, d3], [book], s, true).some((i) => i.asleep)).toBe(false);
+    for (const c of d.cards.slice(0, 3)) s = applyKidsAnswer(s, c.id, true);
+    expect(islands([d, d2, d3], [book], s).map((i) => i.asleep)).toEqual([false, false, true]);
+    // An island that already has stickers stays awake.
+    s = applyKidsAnswer(defaultState(), d3.cards[0].id, true);
+    expect(islands([d, d2, d3], [book], s).map((i) => i.asleep)).toEqual([false, true, false]);
+  });
 });
 
 describe("automatic backups", () => {
@@ -220,5 +261,17 @@ describe("automatic backups", () => {
     expect(backupPlan(files, "2026-11-06")).toEqual({ write: "echo-2026-11-06.json", remove: ["echo-2026-11-01.json"] });
     expect(backupPlan(["echo-2026-11-06.json"], "2026-11-06")).toEqual({ write: null, remove: [] });
     expect(isoDay(new Date(2026, 0, 5))).toBe("2026-01-05");
+  });
+
+  it("stores a parent's kids options on the child's profile only", async () => {
+    const { addProfile, editProfile } = await import("./profiles");
+    const { migrateHousehold } = await import("./profiles");
+    let h = migrateHousehold(null);
+    h = addProfile(addProfile(h, "Ola", "kids", "🦊"), "Tata", "adults", "🐻");
+    const [kid, adult] = h.profiles.slice(-2);
+    h = editProfile(h, kid.id, { kidsOptions: { sounds: false, kidsOpenAll: true } });
+    const after = (id: string) => h.profiles.find((p) => p.id === id)!.settings;
+    expect([after(kid.id).sounds, after(kid.id).kidsOpenAll]).toEqual([false, true]);
+    expect(after(adult.id).sounds).toBeUndefined();
   });
 });

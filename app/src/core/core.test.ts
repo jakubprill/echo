@@ -7,6 +7,7 @@ import { buildQuiz, checkTyped } from "./quiz";
 import { applyKidsAnswer, bestStreak, buildRound, islands, roundStars, stickerTier } from "./kids";
 import { streak } from "./stats";
 import { backupPlan, isoDay } from "./backups";
+import { compareVersions, newestUpdate } from "./update";
 import { addProfile, editProfile, emptyHousehold, migrateHousehold, removeProfile, selectProfile, viewOf, withView } from "./profiles";
 
 const deck = (id: string, n: number, extra: Partial<Deck> = {}): Deck => ({
@@ -273,5 +274,38 @@ describe("automatic backups", () => {
     const after = (id: string) => h.profiles.find((p) => p.id === id)!.settings;
     expect([after(kid.id).sounds, after(kid.id).kidsOpenAll]).toEqual([false, true]);
     expect(after(adult.id).sounds).toBeUndefined();
+  });
+});
+
+describe("self-update", () => {
+  const rel = (tag: string, extra: Record<string, unknown> = {}) => ({
+    tag_name: tag, draft: false, prerelease: true, html_url: `https://github.com/jakubprill/echo/releases/tag/${tag}`,
+    assets: [
+      { name: `Echo-${tag.slice(1)}-windows-x64-setup.exe`, size: 1, browser_download_url: `https://github.com/jakubprill/echo/releases/download/${tag}/Echo-${tag.slice(1)}-windows-x64-setup.exe` },
+      { name: `Echo-${tag.slice(1)}-android-arm64.apk`, size: 133843598, browser_download_url: `https://github.com/jakubprill/echo/releases/download/${tag}/Echo-${tag.slice(1)}-android-arm64.apk` },
+    ],
+    ...extra,
+  });
+  it("orders versions by SemVer precedence", () => {
+    const sorted = ["1.0.0", "0.1.0-alpha.10", "0.1.0", "0.1.0-alpha.2", "0.1.0-beta.1", "0.2.0-alpha.1", "0.1.0-alpha"];
+    expect([...sorted].sort(compareVersions)).toEqual(["0.1.0-alpha", "0.1.0-alpha.2", "0.1.0-alpha.10", "0.1.0-beta.1", "0.1.0", "0.2.0-alpha.1", "1.0.0"]);
+    expect(compareVersions("v0.1.0-alpha.4", "0.1.0-alpha.4")).toBe(0);
+  });
+  it("offers the newest newer pre-release with an Android APK", () => {
+    const u = newestUpdate([rel("v0.1.0-alpha.5"), rel("v0.1.0-alpha.6"), rel("v0.1.0-alpha.4")], "0.1.0-alpha.4");
+    expect(u).toMatchObject({ version: "0.1.0-alpha.6", name: "Echo-0.1.0-alpha.6-android-arm64.apk", size: 133843598 });
+    expect(u?.url).toBe("https://github.com/jakubprill/echo/releases/download/v0.1.0-alpha.6/Echo-0.1.0-alpha.6-android-arm64.apk");
+  });
+  it("offers nothing when up to date, for drafts, without an APK or from another host", () => {
+    expect(newestUpdate([rel("v0.1.0-alpha.4"), rel("v0.1.0-alpha.3")], "0.1.0-alpha.4")).toBeNull();
+    expect(newestUpdate([rel("v0.1.0-alpha.5", { draft: true })], "0.1.0-alpha.4")).toBeNull();
+    expect(newestUpdate([rel("v0.1.0-alpha.5", { assets: [] })], "0.1.0-alpha.4")).toBeNull();
+    expect(newestUpdate([rel("v0.1.0-alpha.5", { assets: [{ name: "Echo-0.1.0-alpha.5-android-arm64.apk", browser_download_url: "https://evil.example/x.apk" }] })], "0.1.0-alpha.4")).toBeNull();
+    expect(newestUpdate({ message: "API rate limit exceeded" }, "0.1.0-alpha.4")).toBeNull();
+    expect(newestUpdate([rel("v0.1.0-alpha.5")], "not-a-version")).toBeNull();
+  });
+  it("a final release outranks its pre-releases", () => {
+    expect(newestUpdate([rel("v0.1.0")], "0.1.0-alpha.9")?.version).toBe("0.1.0");
+    expect(newestUpdate([rel("v0.1.0-alpha.9")], "0.1.0")).toBeNull();
   });
 });

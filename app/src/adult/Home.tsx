@@ -4,6 +4,7 @@ import { lastDays, streak } from "../core/stats";
 import { decksFor, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
 import { VoiceNotice } from "../ui/VoiceNotice";
+import { UpdateBanner } from "../ui/UpdateBanner";
 import type { Nav } from "./AdultApp";
 
 const DAYS = ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "So"];
@@ -33,6 +34,7 @@ export function Home({ nav }: { nav: Nav }) {
         <p className="sub">{date.charAt(0).toUpperCase() + date.slice(1)}{st > 0 ? ` · seria ${st} ${plural(st, "dzień", "dni", "dni")}` : ""}</p>
       </header>
 
+      <UpdateBanner />
       <VoiceNotice />
 
       <div className="today">

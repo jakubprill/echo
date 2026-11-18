@@ -33,6 +33,8 @@ Alpha builds for Android and Windows are published on the [Releases](https://git
 
 To publish a release: Actions → **Release** → Run workflow → enter the version without the leading `v` (for example `0.1.0-alpha.2`). The workflow runs the tests, builds both installers and creates the `v<version>` tag and release. The APK is signed with a stable key from repository secrets ([docs/android-signing.md](docs/android-signing.md)), so a new version installs over the previous one and keeps progress.
 
+The Android app updates itself: on every start (and from Settings → Aktualizacje) it asks the GitHub Releases API for the newest release, pre-releases included, that is newer than the running version and has an `-android-arm64.apk` asset. It then shows "Jest aktualizacja", downloads the APK with the system DownloadManager and opens the system installer, where Android asks for one confirmation. The first time, Android also asks to allow installing apps from Echo. Logic: `app/src/core/update.ts`; download and installer: `app/src/platform/update.ts` and `app/src-tauri/android/MainActivity.kt`. Builds outside the release workflow report version `0.1.0`, which ranks above every `0.1.0-alpha.N`, so they are not offered alpha updates.
+
 The rest of this README describes the original single-file version in `index.html`.
 
 ## Features

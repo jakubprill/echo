@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { initStore } from "./state/store";
 import { watchInsets } from "./platform/insets";
+import { checkForUpdate } from "./platform/update";
 import "./styles/tokens.css";
 import "./styles/adult.css";
 import "./styles/kids.css";
@@ -14,4 +15,6 @@ void initStore().then(() => {
       <App />
     </StrictMode>,
   );
+  // Android: look for a newer release in the background; the profile chooser, Home and Settings show it.
+  void checkForUpdate(true);
 });

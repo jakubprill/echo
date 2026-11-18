@@ -8,6 +8,7 @@ import type { Audience } from "./core/types";
 import { decksFor, updateHousehold, useAppState, useHousehold } from "./state/store";
 import { Icon } from "./ui/icons";
 import { setDarkSystemBars } from "./platform/insets";
+import { UpdateBanner } from "./ui/UpdateBanner";
 
 /** The "system" theme follows the host (Claude artifact) or the operating system. */
 function useSystemDark(): boolean {
@@ -78,6 +79,7 @@ function Chooser() {
         <h1>Echo</h1>
         <p>{manage ? "Wybierz profil, który chcesz zmienić." : "Kto się dziś uczy?"}</p>
       </div>
+      {!manage && <UpdateBanner />}
       <div className="chooser-grid">
         {h.profiles.map((p) => {
           const v = profileView(h, p);

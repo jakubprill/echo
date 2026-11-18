@@ -35,7 +35,7 @@ Dependencies only point down. `core/` imports nothing outside itself, `platform/
 
 ### `core/`: platform-free logic
 
-Plain TypeScript, no DOM. Every function takes a state and returns a new state, so it can be tested without a browser (`npm test`, 16 tests).
+Plain TypeScript, no DOM. Every function takes a state and returns a new state, so it can be tested without a browser (`npm test`, 26 tests).
 
 | File | Responsible for |
 | --- | --- |
@@ -45,6 +45,8 @@ Plain TypeScript, no DOM. Every function takes a state and returns a new state, 
 | `session.ts` | study queue, daily new-word limit, recording a grade |
 | `quiz.ts` | building questions, checking typed answers with typo tolerance |
 | `kids.ts` | islands, game round, stars, stickers, lighthouses |
+| `profiles.ts` | household of profiles, the active profile's view, migration of older saves |
+| `backups.ts` | which daily backup to write and which old ones to remove |
 | `stats.ts` | day streak, charts, breakdown of words by stage |
 
 This is the part that survives any change of UI technology. If we ever decide on Flutter, this directory is the specification to port 1:1, tests included.
@@ -56,14 +58,18 @@ Three small modules, each with one responsibility. The rest of the app calls onl
 | Port | Browser | Tauri (desktop, mobile) | Claude artifact |
 | --- | --- | --- | --- |
 | `tts.ts` | Web Speech API | native TTS via `tauri-plugin-tts` | Web Speech API |
-| `storage.ts` | `localStorage` | `localStorage` in the WebView | `localStorage` + copy in the user's account |
+| `storage.ts` | `localStorage` | `state.json` in the app data directory (+ `localStorage` copy), daily backups in `backups/` | `localStorage` + copy in the user's account |
 | `files.ts` | `<input type=file>`, file download | system dialog + `plugin-fs` | file loading, export by copying text |
 
 The Android WebView has no Web Speech API, so speech has to go through the port. The spike confirmed native TTS on macOS. Polish Windows often has no English voice at all; in that case speech stays silent (it does not read English with a Polish voice) and the app shows where in the system settings to add an English (UK) voice.
 
-### `state/store.ts`: one state
+### `state/store.ts`: one state, several profiles
 
-All user state is one `AppState` object (decks loaded by the user, card progress, daily log, child progress, settings). A change is always `update(s => coreFunction(s, ...))`. Saving happens in the background, 250 ms after the last change. No state library: 80 lines and `useSyncExternalStore`.
+The saved document is a `Household`: the decks loaded by the user (shared by everyone) and a list of profiles. Each profile is an adult (Echo) or a child (Echo Kids) and has its own card progress, daily log, stars and stickers, and settings (voice, rate, new words per day, theme). `active` is the profile learning right now; `null` shows the profile chooser.
+
+Screens and `core/` functions work on `AppState`, which is the active profile seen together with the shared decks (`viewOf`). A change is always `update(s => coreFunction(s, ...))`; the store writes the result back to the active profile (`withView`). Adding, editing, removing and switching profiles go through `updateHousehold`. Saving happens in the background, 250 ms after the last change. No state library: about 100 lines and `useSyncExternalStore`.
+
+Older saves (schema 1, alpha 0.1) held both lines in one state. On load they become an adult profile "Ja" and, if a child has played, a kids profile "Dziecko". Version 1 backup files are converted the same way.
 
 ### Screens
 
@@ -96,10 +102,10 @@ The `.github/workflows/build.yml` workflow runs only the tests and the web build
 ## Decisions for review
 
 1. **React + TypeScript + Vite + Tauri 2.** As chosen on 2026-11-10 and confirmed by the spike. Flutter remains the alternative; `core/` and its tests limit the cost of a switch to the screen layer.
-2. **One app, two lines, profile choice at start.** A parent and a child learn on the same laptop. Leaving Echo Kids requires holding a button for over a second. Alternative: two separate apps, i.e. twice the builds and releases.
+2. **One app, two lines, profiles at start.** Several adults and several children learn on one device (decided 2026-11-13), each with their own profile. Decks are shared, progress is not. Leaving Echo Kids requires holding a button for over a second. Alternative: two separate apps, i.e. twice the builds and releases.
 3. **Adult and child progress are separate models.** Adults: SM-2 with review dates. Children: word level 0–3 and a sticker, with no dates and no "overdue", because a seven-year-old should not see a review backlog. Cost: when a child grows up, their progress does not carry over to SM-2 automatically.
-4. **State as one JSON document in `localStorage`.** Enough for thousands of cards and the easiest to move around (a backup is the same JSON). Before releasing beyond the alpha this becomes a file in the app data directory, because the WebView may clear `localStorage`. The change only touches `platform/storage.ts`.
-5. **Cross-device sync only in the artifact.** The Claude version stores state in the user's account and the newer save wins. Native apps have backup export and import for now. Our own sync is a separate decision (account, server, GDPR for children).
+4. **State as one JSON document.** Enough for thousands of cards and the easiest to move around (a backup is the same JSON). The native app writes it to `state.json` in the app data directory (temporary file + rename, so a crash never leaves half a file), because the WebView may clear `localStorage`. Once a day it also writes a backup and keeps the last five; they can be restored in Settings.
+5. **Cross-device sync only in the artifact.** The Claude version stores state in the user's account and the newer save wins. Native apps have backup export and import; sync can wait (decided 2026-11-13). Our own sync is a separate decision (account, server, GDPR for children).
 6. **Grade labels in Polish** ("Nie wiem", "Trudne", "Dobrze", "Łatwe"), as in the original app. The mockup had English Again/Hard/Good/Easy.
 7. **Swiping a flashcard: right for "Dobrze" (Good), left for "Nie wiem" (Again).** "Trudne" (Hard) and "Łatwe" (Easy) are buttons only.
 8. **Quiz as the fifth tab instead of "Import".** Loading decks lives in the Decks tab. The quiz icon and a few others (back, bin, magnifier, album) were drawn in the style of the set and are awaiting approval in the design system.
@@ -113,5 +119,5 @@ The `.github/workflows/build.yml` workflow runs only the tests and the web build
 - adding and editing your own words in the app,
 - importing decks from a link, from Anki/CSV or from photos,
 - illustrations and an animated mascot (Rive), 3D content,
-- signed installers and store releases,
+- store releases (the APK is signed with a stable key, see [android-signing.md](android-signing.md); the Windows installer is not signed),
 - manual testing on Windows, Android and iOS.

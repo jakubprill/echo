@@ -31,7 +31,7 @@ Alpha builds for Android and Windows are published on the [Releases](https://git
 - `Echo-<version>-android-arm64.apk`
 - `Echo-<version>-windows-x64-setup.exe`
 
-To publish a release: Actions → **Release** → Run workflow → enter the version without the leading `v` (for example `0.1.0-alpha.2`). The workflow runs the tests, builds both installers and creates the `v<version>` tag and release. The APK is a debug build signed with a per-build key, so uninstall the previous version before installing a new one.
+To publish a release: Actions → **Release** → Run workflow → enter the version without the leading `v` (for example `0.1.0-alpha.2`). The workflow runs the tests, builds both installers and creates the `v<version>` tag and release. The APK is signed with a stable key from repository secrets ([docs/android-signing.md](docs/android-signing.md)), so a new version installs over the previous one and keeps progress.
 
 The rest of this README describes the original single-file version in `index.html`.
 
@@ -111,7 +111,7 @@ Decks made from course materials and textbooks are usually protected by copyrigh
 
 ## Privacy
 
-- Progress and decks are stored in the browser (`localStorage`) and, in Claude, in the user's account. The app does not send them anywhere else.
+- Progress and decks are stored on the device (a file in the app data directory in the native app, `localStorage` in the browser) and, in Claude, in the user's account. The app does not send them anywhere else.
 - Fonts load from Google Fonts, so the browser connects to Google's servers.
 - Text-to-speech uses system voices. In some browsers (e.g. Chrome) certain voices run in the browser vendor's cloud.
 

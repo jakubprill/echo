@@ -48,10 +48,18 @@ export function addProfile(h: Household, name: string, kind: Audience, avatar: s
   return { ...h, profiles: [...h.profiles, p] };
 }
 
-export function editProfile(h: Household, id: string, patch: { name?: string; avatar?: string }): Household {
+/** Options a parent sets on a child's profile in the profile form. */
+export type KidsOptions = Pick<Settings, "sounds" | "kidsOpenAll">;
+
+export function editProfile(h: Household, id: string, patch: { name?: string; avatar?: string; kidsOptions?: KidsOptions }): Household {
   const name = patch.name === undefined ? undefined : cleanName(patch.name);
   if (name === "") return h;
-  return { ...h, profiles: h.profiles.map((p) => (p.id === id ? { ...p, ...(name ? { name } : {}), ...(patch.avatar ? { avatar: patch.avatar } : {}) } : p)) };
+  return {
+    ...h,
+    profiles: h.profiles.map((p) =>
+      p.id === id ? { ...p, ...(name ? { name } : {}), ...(patch.avatar ? { avatar: patch.avatar } : {}), ...(patch.kidsOptions ? { settings: { ...p.settings, ...patch.kidsOptions } } : {}) } : p,
+    ),
+  };
 }
 
 export function removeProfile(h: Household, id: string): Household {

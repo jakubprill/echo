@@ -262,4 +262,16 @@ describe("automatic backups", () => {
     expect(backupPlan(["echo-2026-11-06.json"], "2026-11-06")).toEqual({ write: null, remove: [] });
     expect(isoDay(new Date(2026, 0, 5))).toBe("2026-01-05");
   });
+
+  it("stores a parent's kids options on the child's profile only", async () => {
+    const { addProfile, editProfile } = await import("./profiles");
+    const { migrateHousehold } = await import("./profiles");
+    let h = migrateHousehold(null);
+    h = addProfile(addProfile(h, "Ola", "kids", "🦊"), "Tata", "adults", "🐻");
+    const [kid, adult] = h.profiles.slice(-2);
+    h = editProfile(h, kid.id, { kidsOptions: { sounds: false, kidsOpenAll: true } });
+    const after = (id: string) => h.profiles.find((p) => p.id === id)!.settings;
+    expect([after(kid.id).sounds, after(kid.id).kidsOpenAll]).toEqual([false, true]);
+    expect(after(adult.id).sounds).toBeUndefined();
+  });
 });

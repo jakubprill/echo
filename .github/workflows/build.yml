@@ -89,10 +89,31 @@ jobs:
           workspaces: app/src-tauri -> target
       - run: npm ci
       - run: npx tauri android init --ci
-      # Replace the generated MainActivity with ours (passes system bar insets to the web app).
+      # Stable signing key from repository secrets, see docs/android-signing.md.
+      - name: Signing key
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE" ] || [ -z "$PASSWORD" ]; then
+            echo "::warning::No ANDROID_KEYSTORE_BASE64/ANDROID_KEYSTORE_PASSWORD secrets: this APK is signed with a throwaway debug key and will not install over an earlier version."
+            exit 0
+          fi
+          echo "$KEYSTORE" | base64 -d > src-tauri/gen/android/echo.jks
+          printf 'storeFile=echo.jks\npassword=%s\nkeyAlias=echo\n' "$PASSWORD" > src-tauri/gen/android/keystore.properties
+          echo "Stable signing key: $(wc -c < src-tauri/gen/android/echo.jks) bytes"
+      # Replace the generated MainActivity with ours (passes system bar insets to the web app)
+      # and sign with the stable key when keystore.properties exists.
       - run: node scripts/android-shell.mjs
-      # The debug build is signed with the debug key, so it can be installed straight from the file.
+      # Debug build type (proven on devices so far), signed with the stable key when the secrets are set.
       - run: npx tauri android build --apk --debug --target aarch64 --ci
+      # Print the signing certificate so each run shows which key signed the APK (fingerprints are not secret).
+      - name: Signing certificate
+        run: |
+          apk="$(find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' | head -n 1)"
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)/apksigner"
+          out="$("$apksigner" verify --verbose --print-certs "$apk")"
+          echo "$out" | grep -iE "verified using|certificate (DN|SHA-256)" || echo "$out"
       - uses: actions/upload-artifact@v4
         with:
           name: echo-android-apk

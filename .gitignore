@@ -13,3 +13,8 @@ Thumbs.db
 .idea/
 .vscode/
 node_modules/
+
+# Android signing key: never commit it (it lives in repository secrets)
+*.jks
+*.keystore
+keystore.properties

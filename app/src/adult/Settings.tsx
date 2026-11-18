@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { setLine } from "../App";
+import { leaveProfile } from "../App";
 import { DeckError, exportBackup, parseBackup } from "../core/deck";
+import { activeProfile, type Household } from "../core/profiles";
 import type { Settings as S } from "../core/types";
 import { canSaveFiles, copyText, pickTextFile, saveTextFile } from "../platform/files";
 import { ttsAvailable, voices, type Voice } from "../platform/tts";
-import { getState, replaceState, say, update, useAppState } from "../state/store";
+import { autoBackups, listBackups, readBackup } from "../platform/storage";
+import { getHousehold, say, update, updateHousehold, useAppState, useHousehold } from "../state/store";
 import { Icon } from "../ui/icons";
 import { VoiceNotice } from "../ui/VoiceNotice";
 
@@ -25,14 +27,18 @@ export function Settings() {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [backup, setBackup] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [auto, setAuto] = useState<{ name: string; day: string }[]>([]);
+  const [restore, setRestore] = useState<string | null>(null);
+  const me = activeProfile(useHousehold());
 
   useEffect(() => {
     void voices("en").then(setList);
+    void listBackups().then(setAuto);
   }, []);
   const forAccent = list.filter((v) => v.language.toLowerCase() === st.accent.toLowerCase());
 
   const doExport = async () => {
-    const text = exportBackup(getState());
+    const text = exportBackup(getHousehold());
     if (!canSaveFiles()) return setBackup(text);
     try {
       const r = await saveTextFile(`echo-kopia-${new Date().toISOString().slice(0, 10)}.json`, text);
@@ -41,16 +47,27 @@ export function Settings() {
       setBackup(text);
     }
   };
-  const doImport = async () => {
-    const f = await pickTextFile();
-    if (!f) return;
+  /** Replaces all profiles and decks; stays in the current profile if the backup has it. */
+  const load = (text: string, done: string) => {
     try {
-      const line = getState().settings.line;
-      const next = parseBackup(f.text);
-      replaceState({ ...next, settings: { ...next.settings, line } });
-      setMsg({ ok: true, text: "Wczytano kopię zapasową: talie, postępy i ustawienia." });
+      const next = parseBackup(text);
+      const current = getHousehold().active;
+      updateHousehold((): Household => ({ ...next, active: next.profiles.some((p) => p.id === current) ? current : null }));
+      setMsg({ ok: true, text: done });
     } catch (e) {
       setMsg({ ok: false, text: e instanceof DeckError ? e.message : "Nie udało się wczytać kopii." });
+    }
+  };
+  const doImport = async () => {
+    const f = await pickTextFile();
+    if (f) load(f.text, "Wczytano kopię zapasową: profile, talie i postępy.");
+  };
+  const doRestore = async (name: string, day: string) => {
+    setRestore(null);
+    try {
+      load(await readBackup(name), `Przywrócono stan z ${day}.`);
+    } catch {
+      setMsg({ ok: false, text: "Nie udało się odczytać tej kopii." });
     }
   };
 
@@ -92,16 +109,36 @@ export function Settings() {
 
       <section className="panel form">
         <h2>Dane</h2>
-        <p className="sub">Postępy są zapisane tylko na tym urządzeniu. Kopia zapasowa przenosi talie, postępy i ustawienia na inne urządzenie.</p>
+        <p className="sub">Postępy wszystkich profili są zapisane na tym urządzeniu. Kopia zapasowa przenosi profile, talie i postępy na inne urządzenie.</p>
         <div className="row">
           <button className="btn btn-quiet" onClick={doExport}><Icon name="export" /> Zapisz kopię</button>
           <button className="btn btn-quiet" onClick={doImport}><Icon name="import" /> Wczytaj kopię</button>
           {confirm ? (
-            <button className="btn btn-danger" onClick={() => { update((x) => ({ ...x, progress: {}, log: {}, kids: { stars: 0, words: {} } })); setConfirm(false); setMsg({ ok: true, text: "Postępy wyzerowane. Talie zostały." }); }}>Na pewno wyzeruj postępy</button>
+            <button className="btn btn-danger" onClick={() => { update((x) => ({ ...x, progress: {}, log: {}, kids: { stars: 0, words: {} } })); setConfirm(false); setMsg({ ok: true, text: "Postępy tego profilu wyzerowane. Talie i inne profile zostały." }); }}>Na pewno wyzeruj postępy: {me?.name}</button>
           ) : (
             <button className="btn btn-quiet" onClick={() => setConfirm(true)}><Icon name="trash" /> Wyzeruj postępy</button>
           )}
         </div>
+        {autoBackups() && (
+          <div className="autobackups">
+            <h3>Automatyczne kopie</h3>
+            <p className="sub">Echo zapisuje kopię raz dziennie i trzyma pięć ostatnich.</p>
+            {auto.length === 0 ? <p className="sub">Pierwsza kopia pojawi się po ponownym uruchomieniu.</p> : (
+              <ul>
+                {auto.map((b) => (
+                  <li key={b.name}>
+                    <span>{b.day}</span>
+                    {restore === b.name ? (
+                      <button className="btn btn-danger" onClick={() => void doRestore(b.name, b.day)}>Na pewno przywróć</button>
+                    ) : (
+                      <button className="btn btn-quiet" onClick={() => setRestore(b.name)}>Przywróć</button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
         {msg && <p className={`notice ${msg.ok ? "notice-ok" : "notice-no"}`} role="status">{msg.text}</p>}
         {backup && (
           <div className="backup">
@@ -114,9 +151,9 @@ export function Settings() {
 
       <section className="panel form">
         <h2>Profil</h2>
+        <p className="sub">Uczysz się jako {me?.avatar} {me?.name}. Lektor i tempo nauki są ustawione osobno dla każdego profilu.</p>
         <div className="row">
-          <button className="btn btn-quiet" onClick={() => setLine("kids")}><Icon name="bat" /> Przejdź do Echo Kids</button>
-          <button className="btn btn-quiet" onClick={() => setLine(null)}><Icon name="user" /> Wybór profilu</button>
+          <button className="btn btn-quiet" onClick={leaveProfile}><Icon name="user" /> Zmień profil</button>
         </div>
         <p className="sub">Echo {__ECHO_VERSION__}</p>
       </section>

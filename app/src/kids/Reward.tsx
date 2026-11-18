@@ -17,7 +17,7 @@ function wordsLabel(n: number): string {
 
 const TITLES = ["", "Dobra próba!", "Brawo!", "Super runda!"];
 
-export function Reward({ result, before, after, stars, onAgain, onMap }: { result: RoundResult; before: Island; after: Island; stars: number; onAgain: () => void; onMap: () => void }) {
+export function Reward({ result, before, after, woke, stars, onAgain, onMap }: { result: RoundResult; before: Island; after: Island; woke?: Island; stars: number; onAgain: () => void; onMap: () => void }) {
   const s = useAppState();
   const { won, firstTries } = result;
   const rating = roundStars(won.length, firstTries.length);
@@ -33,9 +33,9 @@ export function Reward({ result, before, after, stars, onAgain, onMap }: { resul
     for (let i = 0; i < rating; i++) t.push(setTimeout(() => { setShown(i + 1); sfx.star(i); }, 300 + i * 380));
     const end = 300 + rating * 380;
     if (rating >= 2) t.push(setTimeout(sfx.fanfare, end));
-    if (conquered || newLamp) t.push(setTimeout(sfx.sparkle, end + 700));
+    if (conquered || newLamp || woke) t.push(setTimeout(sfx.sparkle, end + 700));
     return () => t.forEach(clearTimeout);
-  }, [rating, conquered, newLamp]);
+  }, [rating, conquered, newLamp, woke]);
 
   return (
     <div className="kscreen">
@@ -57,6 +57,12 @@ export function Reward({ result, before, after, stars, onAgain, onMap }: { resul
             <div className={`rlamp${conquered ? " big" : ""}`} role="status">
               <span className="lamps">{[0, 1, 2].map((k) => <i key={k} className={k < after.lamps ? "on" : ""} />)}</span>
               <b>{conquered ? `${after.title}: wszystkie lampki!` : "Nowa lampka na wyspie!"}</b>
+            </div>
+          )}
+          {woke && (
+            <div className="rwoke" role="status">
+              <span>{woke.emoji}</span>
+              <div><b>Budzi się nowa wyspa!</b><small>{woke.title} czeka na Ciebie</small></div>
             </div>
           )}
           <div className="stickers">

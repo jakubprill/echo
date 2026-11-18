@@ -124,7 +124,7 @@
 @keyframes combo { from { transform: scale(0.2) rotate(-30deg); } }
 
 /* round rating */
-.kreward-main { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); gap: clamp(6px, 1.6vmin, 14px); min-height: 0; min-width: 0; }
+.kreward-main { display: grid; grid-template-rows: repeat(4, auto) minmax(0, 1fr); gap: clamp(6px, 1.6vmin, 14px); min-height: 0; min-width: 0; }
 .rstars { display: flex; justify-content: center; align-items: end; gap: clamp(4px, 1.4vmin, 14px); padding-top: 6px; }
 .rstars i { width: clamp(56px, 13vmin, 110px); aspect-ratio: 1; background: rgba(255, 255, 255, 0.14); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
 .rstars i:nth-child(2) { width: clamp(72px, 17vmin, 140px); }
@@ -156,6 +156,10 @@
 @media (max-aspect-ratio: 1/1) {
   .tiers { display: none; }
   .combo-l { display: none; }
-  .kreward-main { grid-template-rows: auto auto auto minmax(0, 1fr); }
+  .kreward-main { grid-template-rows: repeat(4, auto) minmax(0, 1fr); }
 }
 .kreward-main .stickers { grid-template-columns: repeat(auto-fill, minmax(clamp(80px, 15vmin, 130px), 1fr)); }
+.rwoke { justify-self: center; display: flex; align-items: center; gap: 12px; padding: 8px 18px 8px 10px; border-radius: 20px; background: var(--surface); border: 3px solid var(--easy); animation: land 0.6s 2s backwards cubic-bezier(0.3, 1.5, 0.5, 1); max-width: 100%; }
+.rwoke > span { font-size: clamp(32px, 6vmin, 48px); line-height: 1; }
+.rwoke b { display: block; font: 800 clamp(16px, 3vmin, 22px)/1.2 var(--f-kd); }
+.rwoke small { color: var(--muted); font-size: clamp(14px, 2.4vmin, 18px); }

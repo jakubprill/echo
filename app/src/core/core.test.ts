@@ -163,5 +163,18 @@ describe("kids line", () => {
     s = applyKidsAnswer(s, id, false);
     expect(stickerTier(s.kids.words[id])).toBe(1);
   });
-});
 
+  it("wakes islands one after another", () => {
+    const book = { format: "echo-book" as const, version: 1 as const, id: "b", title: "B", units: [{ id: "u1", title: "One" }, { id: "u2", title: "Two" }, { id: "u3", title: "Three" }] };
+    const d2 = deck("m", 9, { audience: "kids", book: "b", unit: "u2" });
+    const d3 = deck("n", 9, { audience: "kids", book: "b", unit: "u3" });
+    let s = defaultState();
+    expect(islands([d, d2, d3], [book], s).map((i) => i.asleep)).toEqual([false, true, true]);
+    expect(islands([d, d2, d3], [book], s, true).some((i) => i.asleep)).toBe(false);
+    for (const c of d.cards.slice(0, 3)) s = applyKidsAnswer(s, c.id, true);
+    expect(islands([d, d2, d3], [book], s).map((i) => i.asleep)).toEqual([false, false, true]);
+    // An island that already has stickers stays awake.
+    s = applyKidsAnswer(defaultState(), d3.cards[0].id, true);
+    expect(islands([d, d2, d3], [book], s).map((i) => i.asleep)).toEqual([false, true, false]);
+  });
+});

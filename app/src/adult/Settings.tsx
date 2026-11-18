@@ -78,6 +78,9 @@ export function Settings() {
         <label className="field field-check" htmlFor="set-sounds"><span>Dźwięki gry w Echo Kids</span>
           <input id="set-sounds" type="checkbox" checked={st.sounds !== false} onChange={(e) => set({ sounds: e.target.checked })} />
         </label>
+        <label className="field field-check" htmlFor="set-open-all"><span>Echo Kids: wszystkie wyspy otwarte od razu</span>
+          <input id="set-open-all" type="checkbox" checked={st.kidsOpenAll === true} onChange={(e) => set({ kidsOpenAll: e.target.checked })} />
+        </label>
         <div><button className="btn btn-quiet" onClick={() => say("It was pure serendipity that we met in Lisbon.")}><Icon name="speaker" /> Wypróbuj głos</button></div>
       </section>
 

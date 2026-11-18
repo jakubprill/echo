@@ -8,7 +8,7 @@ import { Game, type RoundResult } from "./Game";
 import { IslandMap } from "./IslandMap";
 import { Album, Reward } from "./Reward";
 
-type View = { name: "map" | "album" } | { name: "game"; island: Island; round: number } | { name: "reward"; island: Island; result: RoundResult; round: number };
+type View = { name: "map" | "album" } | { name: "game"; island: Island; round: number; asleep: string[] } | { name: "reward"; island: Island; result: RoundResult; round: number; asleep: string[] };
 
 export function Jar({ stars }: { stars: number }) {
   return <span className="jar" aria-label={`Gwiazdki: ${stars}`}><i /><b key={stars}>{stars}</b></span>;
@@ -58,12 +58,13 @@ export function KidsApp() {
   const [view, setView] = useState<View>({ name: "map" });
   const decks = decksFor(s, "kids");
   setSfxEnabled(s.settings.sounds !== false);
-  const list = useMemo(() => islands(decks, bundledBooks.filter((b) => decks.some((d) => d.book === b.id)), s), [decks, s]);
+  const list = useMemo(() => islands(decks, bundledBooks.filter((b) => decks.some((d) => d.book === b.id)), s, s.settings.kidsOpenAll === true), [decks, s]);
+  const sleeping = () => list.filter((i) => i.asleep).map((i) => i.id);
 
   if (view.name === "game")
-    return <Game key={`${view.island.id}-${view.round}`} island={view.island} onExit={() => setView({ name: "map" })} onDone={(result) => setView({ name: "reward", island: view.island, result, round: view.round })} />;
+    return <Game key={`${view.island.id}-${view.round}`} island={view.island} onExit={() => setView({ name: "map" })} onDone={(result) => setView({ name: "reward", island: view.island, result, round: view.round, asleep: view.asleep })} />;
   if (view.name === "reward")
-    return <Reward result={view.result} before={view.island} after={list.find((i) => i.id === view.island.id) ?? view.island} stars={s.kids.stars} onAgain={() => setView({ name: "game", island: list.find((i) => i.id === view.island.id) ?? view.island, round: view.round + 1 })} onMap={() => setView({ name: "map" })} />;
+    return <Reward result={view.result} before={view.island} after={list.find((i) => i.id === view.island.id) ?? view.island} woke={list.find((i) => view.asleep.includes(i.id) && !i.asleep)} stars={s.kids.stars} onAgain={() => setView({ name: "game", island: list.find((i) => i.id === view.island.id) ?? view.island, round: view.round + 1, asleep: sleeping() })} onMap={() => setView({ name: "map" })} />;
   if (view.name === "album") return <Album islands={list} onBack={() => setView({ name: "map" })} />;
 
   return (
@@ -81,7 +82,7 @@ export function KidsApp() {
           <small>Rodzic może wczytać talię dla dzieci w Echo: Talie, Wczytaj z pliku.</small>
         </div>
       ) : (
-        <IslandMap islands={list} onPlay={(island) => setView({ name: "game", island, round: 0 })} />
+        <IslandMap islands={list} onPlay={(island) => setView({ name: "game", island, round: 0, asleep: sleeping() })} />
       )}
     </div>
   );

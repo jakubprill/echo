@@ -12,8 +12,11 @@ function place(i: number, n: number): { x: number; y: number } {
 }
 
 export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: Island) => void }) {
-  const firstOpen = islands.findIndex((i) => i.deck && i.lamps < 3);
-  const [sel, setSel] = useState(Math.max(0, firstOpen >= 0 ? firstOpen : islands.findIndex((i) => i.deck)));
+  const open = (i: Island) => !!i.deck && !i.asleep;
+  // Start at the newest awake island that is not finished yet.
+  let firstOpen = -1;
+  islands.forEach((isl, i) => { if (open(isl) && isl.lamps < 3) firstOpen = i; });
+  const [sel, setSel] = useState(Math.max(0, firstOpen >= 0 ? firstOpen : islands.findIndex(open)));
   const cur = islands[sel];
   const pos = islands.map((_, i) => place(i, islands.length));
   const scroller = useRef<HTMLDivElement>(null);
@@ -35,14 +38,14 @@ export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: 
           {islands.map((isl, i) => (
             <button
               key={isl.id}
-              className={`isl${isl.deck ? "" : " lock"}${isl.lamps >= 3 ? " done" : ""}${i === sel ? " cur" : ""}`}
+              className={`isl${open(isl) ? "" : " lock"}${isl.lamps >= 3 ? " done" : ""}${i === sel ? " cur" : ""}`}
               style={{ left: `${pos[i].x}%`, top: `${pos[i].y}%`, background: COLORS[i % COLORS.length] }}
-              onClick={() => isl.deck && setSel(i)}
-              aria-disabled={!isl.deck}
+              onClick={() => (isl.deck ? setSel(i) : undefined)}
+              aria-disabled={!open(isl)}
               aria-pressed={i === sel}
-              aria-label={isl.deck ? `Wyspa ${isl.title}, naklejki: ${isl.stickers} z ${isl.total}` : `Wyspa ${isl.title}, wkrótce`}
+              aria-label={!isl.deck ? `Wyspa ${isl.title}, wkrótce` : isl.asleep ? `Wyspa ${isl.title}, śpi` : `Wyspa ${isl.title}, naklejki: ${isl.stickers} z ${isl.total}`}
             >
-              <span className="isl-e">{isl.deck ? isl.emoji : "🔒"}</span>
+              <span className="isl-e">{!isl.deck ? "🔒" : isl.asleep ? "💤" : isl.emoji}</span>
               {isl.lamps >= 3 && <span className="isl-flag" aria-hidden="true">🚩</span>}
               <span className="lamps">{[0, 1, 2].map((k) => <i key={k} className={k < isl.lamps ? "on" : ""} />)}</span>
               <b>{isl.title}</b>
@@ -54,9 +57,9 @@ export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: 
       <div className="kfoot">
         <div className="kfoot-info">
           <b>{cur.title}</b>
-          <small>{cur.deck ? `${cur.stickers} z ${cur.total} naklejek` : "Ta wyspa jeszcze śpi"}</small>
+          <small>{!cur.deck ? "Ta wyspa jeszcze śpi" : cur.asleep ? "Zapal lampkę na poprzedniej wyspie, żeby ją obudzić" : `${cur.stickers} z ${cur.total} naklejek`}</small>
         </div>
-        <button className="kbtn" disabled={!cur.deck} onClick={() => onPlay(cur)}>Graj! ▶</button>
+        <button className="kbtn" disabled={!open(cur)} onClick={() => onPlay(cur)}>Graj! ▶</button>
       </div>
     </>
   );

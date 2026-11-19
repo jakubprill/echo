@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { WordPic } from "./WordPic";
 import type { Island } from "../core/kids";
 import { Bat } from "../ui/Bat";
 
@@ -45,7 +46,7 @@ export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: 
               aria-pressed={i === sel}
               aria-label={!isl.deck ? `Wyspa ${isl.title}, wkrótce` : isl.asleep ? `Wyspa ${isl.title}, śpi` : `Wyspa ${isl.title}, naklejki: ${isl.stickers} z ${isl.total}`}
             >
-              <span className="isl-e">{!isl.deck ? "🔒" : isl.asleep ? "💤" : isl.emoji}</span>
+              <span className="isl-e">{!isl.deck ? "🔒" : isl.asleep ? "💤" : <WordPic card={{ emoji: isl.emoji, pic: isl.pic, en: isl.title }} />}</span>
               {isl.lamps >= 3 && <span className="isl-flag" aria-hidden="true">🚩</span>}
               <span className="lamps">{[0, 1, 2].map((k) => <i key={k} className={k < isl.lamps ? "on" : ""} />)}</span>
               <b>{isl.title}</b>

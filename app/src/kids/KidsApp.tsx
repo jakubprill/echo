@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { WordPic } from "./WordPic";
 import { leaveProfile } from "../App";
 import { kidsWorlds, type Island, type KidsWorld } from "../core/kids";
 import { bundledBooks, decksFor, useAppState } from "../state/store";
@@ -114,7 +115,7 @@ function WorldTile({ world, onOpen }: { world: KidsWorld; onOpen: () => void }) 
   const total = playable.reduce((a, i) => a + i.total, 0);
   return (
     <button className="kworld" onClick={onOpen} aria-label={`${world.title}: wyspy ${playable.length}, naklejki ${stickers} z ${total}`}>
-      <span className="kworld-e" aria-hidden="true">{playable[0]?.emoji ?? "🏝️"}</span>
+      <span className="kworld-e" aria-hidden="true">{playable[0] ? <WordPic card={{ emoji: playable[0].emoji, pic: playable[0].pic, en: playable[0].title }} /> : "🏝️"}</span>
       <b>{world.title}</b>
       <small>🏝️ {playable.length} · ⭐ {stickers}/{total}</small>
       <span className="lamps" aria-hidden="true">{playable.map((i) => <i key={i.id} className={i.lamps > 0 ? "on" : ""} />)}</span>

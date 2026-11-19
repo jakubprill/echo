@@ -4,7 +4,7 @@ import { review } from "./sm2";
 import { applyGrade, buildQueue, counts, markDueNow, requeue } from "./session";
 import { DeckError, exportBackup, mergeDecks, parseBackup, parseDeckFile } from "./deck";
 import { buildQuiz, checkTyped } from "./quiz";
-import { applyKidsAnswer, bestStreak, buildRound, islands, kidsWorlds, LOOSE_WORLD, roundStars, stickerTier } from "./kids";
+import { applyKidsAnswer, bestStreak, buildRound, islands, kidsWorlds, LOOSE_WORLD, pictureKey, playable, roundStars, stickerTier } from "./kids";
 import { groupDecks, pickDecks, shortTitle } from "./folders";
 import { streak } from "./stats";
 import { backupPlan, isoDay } from "./backups";
@@ -204,6 +204,24 @@ describe("kids line", () => {
       expect(new Set(q.options.map((o) => o.emoji)).size).toBe(4);
       expect(q.options).toContain(q.card);
     }
+  });
+  it("cards with a built-in picture are playable, and one question never shows the same picture twice", () => {
+    const pics: Deck = { ...d, id: "p", cards: [
+      { id: "p1", en: "board", pl: "tablica", pic: "blackboard" },
+      { id: "p2", en: "blackboard", pl: "tablica", pic: "blackboard", emoji: "🟩" },
+      { id: "p3", en: "cat", pl: "kot", emoji: "🐱" },
+      { id: "p4", en: "dog", pl: "pies", pic: "dog" },
+      { id: "p5", en: "pen", pl: "długopis", pic: "pen" },
+      { id: "p6", en: "no picture", pl: "bez obrazka" },
+    ] };
+    expect(playable(pics).map((c) => c.id)).toEqual(["p1", "p2", "p3", "p4", "p5"]);
+    for (let i = 0; i < 20; i++)
+      for (const q of buildRound(pics, defaultState()).questions) {
+        const keys = q.options.map(pictureKey);
+        expect(new Set(keys).size).toBe(keys.length);
+      }
+    expect(islands([pics], [], defaultState())[0].pic).toBe("blackboard");
+    expect(parseDeckFile(JSON.stringify({ format: "echo-deck", id: "x", cards: [{ en: "a", pl: "b", pic: " pen " }] }))[0].cards[0].pic).toBe("pen");
   });
   it("a hit earns a star and a sticker, and the next round picks unknown words", () => {
     let s = defaultState();

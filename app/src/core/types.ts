@@ -29,6 +29,8 @@ export type Deck = {
   audience?: Audience;
   book?: string;
   unit?: string;
+  /** Folder shown in the deck list, e.g. "Lekcje z lektorką". Decks with a `book` are grouped by it when this is missing. */
+  folder?: string;
   from: string;
   to: string;
   cards: Card[];

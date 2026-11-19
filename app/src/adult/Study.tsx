@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { dayNumber } from "../core/date";
+import { pickDecks } from "../core/folders";
 import { applyGrade, buildQueue, requeue, type StudyItem } from "../core/session";
 import { intervalLabel, previewInterval } from "../core/sm2";
 import type { Grade } from "../core/types";
-import { decksFor, getState, say, update, useAppState } from "../state/store";
+import { bundledBooks, decksFor, getState, say, update, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
 import type { Nav } from "./AdultApp";
 
@@ -15,13 +16,13 @@ const GRADES: { g: Grade; label: string; key: string }[] = [
 ];
 const SWIPE = 110;
 
-export function Study({ deckId, nav }: { deckId?: string; nav: Nav }) {
+export function Study({ deckId, folder, nav }: { deckId?: string; folder?: string; nav: Nav }) {
   const s = useAppState();
   // The queue is built once at the start of the session so grading does not reshuffle cards under the user's finger.
   const initial = useMemo(() => {
     const st = getState();
-    return buildQueue(decksFor(st, "adults").filter((d) => !deckId || d.id === deckId), st, dayNumber());
-  }, [deckId]);
+    return buildQueue(pickDecks(decksFor(st, "adults"), { deckId, folder }, bundledBooks), st, dayNumber());
+  }, [deckId, folder]);
   const [queue, setQueue] = useState<StudyItem[]>(initial);
   const [done, setDone] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -82,7 +83,7 @@ export function Study({ deckId, nav }: { deckId?: string; nav: Nav }) {
           <p className="sub">{done > 0 ? `Powtórzone karty: ${done}. Następne pojawią się zgodnie z harmonogramem.` : "W tej talii nie ma dziś kart do nauki. Dzienny limit nowych słówek zmienisz w Ustawieniach."}</p>
           <div className="row">
             <button className="btn" onClick={() => nav({ name: "home" })}>Wróć na start</button>
-            <button className="btn btn-quiet" onClick={() => nav({ name: "quiz", deckId })}>Zrób quiz</button>
+            <button className="btn btn-quiet" onClick={() => nav({ name: "quiz", deckId, folder })}>Zrób quiz</button>
           </div>
         </div>
       </div>

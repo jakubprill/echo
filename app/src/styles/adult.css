@@ -269,3 +269,11 @@
 .update b { font: 700 19px var(--f-display); }
 .update .update-bar { flex: 1 1 100%; }
 .chooser .update { width: min(100%, 720px); }
+
+/* folders: a tile that looks like a stack of decks */
+.folder { position: relative; margin: 0 8px 8px 0; box-shadow: 0 0 0 1px var(--line) inset, 4px 4px 0 -1px var(--surface), 4px 4px 0 0 var(--line), 8px 8px 0 -1px var(--surface), 8px 8px 0 0 var(--line); }
+.folder-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.folder-ic { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); }
+.crumb { display: flex; align-items: center; gap: 6px; margin: 0 0 2px; color: var(--muted); font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.h2-inline { margin: 0; }
+.head-row + .decks { margin-top: 16px; }

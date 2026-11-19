@@ -1,23 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { dayNumber } from "../core/date";
+import { pickDecks } from "../core/folders";
 import { buildQuiz, checkTyped, type Question } from "../core/quiz";
 import { markDueNow } from "../core/session";
-import { decksFor, getState, say, update } from "../state/store";
+import { bundledBooks, decksFor, getState, say, update } from "../state/store";
 import { Icon } from "../ui/icons";
 import type { Nav } from "./AdultApp";
 
 type Result = { q: Question; ok: boolean };
 
-export function Quiz({ deckId, nav }: { deckId?: string; nav: Nav }) {
+export function Quiz({ deckId, folder, nav }: { deckId?: string; folder?: string; nav: Nav }) {
   const [round, setRound] = useState(0);
   const questions = useMemo(() => {
     const st = getState();
-    const cards = decksFor(st, "adults").filter((d) => !deckId || d.id === deckId).flatMap((d) => d.cards);
+    const cards = pickDecks(decksFor(st, "adults"), { deckId, folder }, bundledBooks).flatMap((d) => d.cards);
     // The quiz checks words already seen on flashcards first.
     const seen = cards.filter((c) => st.progress[c.id]);
     return buildQuiz(seen.length >= 8 ? seen : cards, 10);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deckId, round]);
+  }, [deckId, folder, round]);
   const [i, setI] = useState(0);
   const [results, setResults] = useState<Result[]>([]);
   const [picked, setPicked] = useState<number | null>(null);

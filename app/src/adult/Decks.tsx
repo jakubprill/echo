@@ -55,6 +55,7 @@ export function Decks({ nav }: { nav: Nav }) {
         <div className="row">
           {!isKids && <button className="btn" onClick={() => nav({ name: "study", deckId: deck.id })}><Icon name="play" /> Ucz się</button>}
           {!isKids && <button className="btn btn-quiet" onClick={() => nav({ name: "quiz", deckId: deck.id })}><Icon name="quiz" /> Quiz</button>}
+          {!isKids && <button className="btn btn-quiet" onClick={() => nav({ name: "voice", deckId: deck.id })}><Icon name="mic" /> Głosowo</button>}
           {!isBundled(deck.id) && (confirm ? (
             <button className="btn btn-danger" onClick={() => { update((st) => ({ ...st, decks: st.decks.filter((d) => d.id !== deck.id) })); setOpen(null); setConfirm(false); }}>Na pewno usuń talię</button>
           ) : (

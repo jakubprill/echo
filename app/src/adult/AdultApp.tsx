@@ -6,8 +6,9 @@ import { Quiz } from "./Quiz";
 import { Decks } from "./Decks";
 import { Progress } from "./Progress";
 import { Settings } from "./Settings";
+import { Voice } from "./Voice";
 
-export type View = { name: "home" | "decks" | "progress" | "settings" | "study" | "quiz"; deckId?: string };
+export type View = { name: "home" | "decks" | "progress" | "settings" | "study" | "quiz" | "voice"; deckId?: string };
 export type Nav = (v: View) => void;
 
 const TABS: { name: "home" | "decks" | "quiz" | "progress" | "settings"; icon: IconName; label: string }[] = [
@@ -20,9 +21,9 @@ const TABS: { name: "home" | "decks" | "quiz" | "progress" | "settings"; icon: I
 
 export function AdultApp() {
   const [view, setView] = useState<View>({ name: "home" });
-  const active = view.name === "study" ? "home" : view.name;
-  // Study and quiz take the full screen so navigation does not distract during a session.
-  const immersive = view.name === "study";
+  const active = view.name === "study" || view.name === "voice" ? "home" : view.name;
+  // Study and the voice mode take the full screen so navigation does not distract during a session.
+  const immersive = view.name === "study" || view.name === "voice";
   return (
     <div className={`shell${immersive ? " shell-immersive" : ""}`}>
       {!immersive && (
@@ -39,6 +40,7 @@ export function AdultApp() {
       <main className="main">
         {view.name === "home" && <Home nav={setView} />}
         {view.name === "study" && <Study deckId={view.deckId} nav={setView} />}
+        {view.name === "voice" && <Voice key={view.deckId ?? "all"} deckId={view.deckId} nav={setView} />}
         {view.name === "quiz" && <Quiz key={view.deckId ?? "all"} deckId={view.deckId} nav={setView} />}
         {view.name === "decks" && <Decks nav={setView} />}
         {view.name === "progress" && <Progress />}

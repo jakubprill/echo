@@ -25,7 +25,7 @@ Vocabulary is not part of the app. The app reads decks in the `echo-deck` format
 │   ┌────┴─────┐                                               │
 │   ▼          ▼                                               │
 │  core/      platform/                                        │
-│  pure       ports: tts, storage, files                       │
+│  pure       ports: tts, listen, storage, files               │
 │  logic      (browser | Tauri | Claude artifact)              │
 └──────────────────────────────────────────────────────────────┘
         ▲ at build time: virtual:echo-content (decks from ECHO_CONTENT_DIR)
@@ -35,7 +35,7 @@ Dependencies only point down. `core/` imports nothing outside itself, `platform/
 
 ### `core/`: platform-free logic
 
-Plain TypeScript, no DOM. Every function takes a state and returns a new state, so it can be tested without a browser (`npm test`, 26 tests).
+Plain TypeScript, no DOM. Every function takes a state and returns a new state, so it can be tested without a browser (`npm test`).
 
 | File | Responsible for |
 | --- | --- |
@@ -48,20 +48,22 @@ Plain TypeScript, no DOM. Every function takes a state and returns a new state, 
 | `profiles.ts` | household of profiles, the active profile's view, migration of older saves |
 | `backups.ts` | which daily backup to write and which old ones to remove |
 | `stats.ts` | day streak, charts, breakdown of words by stage |
+| `voice.ts` | voice mode: choosing words, lenient judging of a spoken answer, voice commands, queue and progress after an answer |
 
 This is the part that survives any change of UI technology. If we ever decide on Flutter, this directory is the specification to port 1:1, tests included.
 
 ### `platform/`: ports
 
-Three small modules, each with one responsibility. The rest of the app calls only these.
+Small modules, each with one responsibility. The rest of the app calls only these.
 
 | Port | Browser | Tauri (desktop, mobile) | Claude artifact |
 | --- | --- | --- | --- |
 | `tts.ts` | Web Speech API | native TTS via `tauri-plugin-tts` | Web Speech API |
 | `storage.ts` | `localStorage` | `state.json` in the app data directory (+ `localStorage` copy), daily backups in `backups/` | `localStorage` + copy in the user's account |
 | `files.ts` | `<input type=file>`, file download | system dialog + `plugin-fs` | file loading, export by copying text |
+| `listen.ts` | Web Speech API (`SpeechRecognition`, Chrome and Edge) | Android: the system `SpeechRecognizer` through the `MainActivity` bridge; Windows and macOS: not yet | Web Speech API, where the browser allows the microphone |
 
-The Android WebView has no Web Speech API, so speech has to go through the port. The spike confirmed native TTS on macOS. Polish Windows often has no English voice at all; in that case speech stays silent (it does not read English with a Polish voice) and the app shows where in the system settings to add an English (UK) voice.
+The Android WebView has no Web Speech API, so speech has to go through the port. The same goes for speech recognition: `MainActivity.kt` runs Android's `SpeechRecognizer` and sends results back as `echo-speech` window events (`scripts/android-shell.mjs` adds the `RECORD_AUDIO` permission and the `RecognitionService` query to the manifest). The spike confirmed native TTS on macOS. Polish Windows often has no English voice at all; in that case speech stays silent (it does not read English with a Polish voice) and the app shows where in the system settings to add an English (UK) voice.
 
 ### `state/store.ts`: one state, several profiles
 
@@ -76,6 +78,16 @@ Older saves (schema 1, alpha 0.1) held both lines in one state. On load they bec
 `App.tsx` picks the line (`settings.line`) and sets `data-theme` (`light`, `dark`, `kids`). Each line has its own in-memory navigation, with no router and no URLs: URLs mean nothing in an artifact or a native app, and during a study session the browser's back button would only get in the way.
 
 Styles: `tokens.css` carries over the tokens from the design system (same names, three sets of values). Components use tokens only. The layout is fluid: the mockups were made for 1280×800 landscape, which is the target screen, but the same code also lays out in portrait on a phone (the navigation rail becomes a bottom bar and the mascot moves above the tiles).
+
+### Voice mode
+
+"Tryb głosowy" is hands-free practice: Echo reads a word, opens the microphone, judges the spoken translation and moves on without a tap. A right answer goes to the next word; a wrong one plays a short sound, says the right answer, and the word comes back three words later. Directions: English → Polish, Polish → English, or alternating. The person picks decks, a scope (all, due, hard, new), single words and a session length.
+
+- **Judging** (`core/voice.ts`) is deliberately lenient: any meaning of the entry, optional brackets, articles, "to", "się" and placeholders (`sb`, `ktoś`) may be left out, diacritics and punctuation are ignored, and a word may differ by a misheard letter or an ending (Polish cases, English -s/-ed/-ing). The first letter must match, so "intangible" is not "tangible". The recogniser's alternatives are all tried. Against the private decks (711 cards), every entry accepts its own answer and about 0.1% of random wrong answers are accepted.
+- **Commands** work in both languages: "powtórz"/"repeat", "nie wiem"/"I don't know", "pauza"/"pause", "koniec"/"end". The answer wins over a command, so "stop" is a right answer when the word is "stop".
+- **Silence**: first more time to think, then the word again, then the session pauses (and says so), so nothing is failed while the person is away. Leaving the app also pauses it. The screen stays on during a session.
+- **Progress**: a new or due word is graded "Dobrze" or "Nie wiem", like the buttons. A word that is not due is not moved forward by a right answer, but a wrong one becomes due, as in the quiz. "Uznaj, było dobrze" takes back a miss the recogniser got wrong.
+- **Without a recogniser** (Windows, macOS for now) the mode reads only: word, four seconds to think, translation. Progress does not change.
 
 ## Content
 
@@ -117,6 +129,7 @@ The `.github/workflows/build.yml` workflow runs only the tests and the web build
 ## Not in the alpha
 
 - adding and editing your own words in the app,
+- speech recognition on Windows and macOS (the voice mode reads only there),
 - importing decks from a link, from Anki/CSV or from photos,
 - illustrations and an animated mascot (Rive), 3D content,
 - store releases (the APK is signed with a stable key, see [android-signing.md](android-signing.md); the Windows installer is not signed),

@@ -69,6 +69,17 @@ export function Home({ nav }: { nav: Nav }) {
       </div>
 
       {decks.length > 0 && (
+        <section className="panel voice-entry">
+          <span className="voice-entry-icon" aria-hidden="true"><Icon name="mic" size={30} /></span>
+          <div>
+            <b>Tryb głosowy</b>
+            <p className="sub">Echo czyta słówka, Ty odpowiadasz na głos. Bez klikania, na przykład przy pracy.</p>
+          </div>
+          <button className="btn btn-quiet" onClick={() => nav({ name: "voice" })}><Icon name="mic" /> Ćwicz głosem</button>
+        </section>
+      )}
+
+      {decks.length > 0 && (
         <section>
           <h2>Talie</h2>
           <div className="decks">

@@ -222,6 +222,47 @@
   .profile-art.profile-avatar, .profile-add .profile-art { height: 64px; font-size: 54px; }
 }
 
+/* voice mode */
+.voice-entry { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.voice-entry > div { flex: 1 1 240px; min-width: 0; display: grid; gap: 2px; }
+.voice-entry b { font: 700 20px var(--f-display); }
+.voice-entry .sub { margin: 0; font-size: 16px; }
+.voice-entry-icon { width: 56px; height: 56px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+.voice-setup .form > h2 { margin-bottom: 0; }
+.voice-setup .seg { display: flex; }
+.field-off { opacity: 0.55; cursor: default; }
+.voice-decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }
+.voice-deck { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 14px; border: 0; border-radius: var(--r-md); background: var(--sunk); text-align: left; color: var(--fg); }
+.voice-deck b { flex: 1; min-width: 0; font-size: 16px; overflow-wrap: anywhere; }
+.voice-deck small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.voice-deck[aria-pressed="true"] { background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent) inset; }
+.voice-tick { width: 26px; height: 26px; flex: none; border-radius: 8px; box-shadow: 0 0 0 2px var(--line) inset; display: grid; place-items: center; background: var(--surface); }
+.voice-deck[aria-pressed="true"] .voice-tick { background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+.voice-words { max-height: 420px; overflow-y: auto; }
+.voice-words label { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; cursor: pointer; min-height: 44px; }
+.voice-words input { width: 24px; height: 24px; flex: none; accent-color: var(--accent); }
+.voice-start { display: grid; justify-items: center; gap: 10px; text-align: center; }
+.voice-start .btn { min-width: min(100%, 360px); }
+
+.voice { grid-template-rows: auto minmax(0, 1fr) auto; }
+.voice-stage { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; }
+.voice-card { border-radius: 24px; background: var(--card); color: var(--card-ink); box-shadow: var(--shadow-card); display: grid; justify-items: center; align-content: safe center; gap: 14px; text-align: center; padding: clamp(20px, 5vw, 44px); overflow-y: auto; min-height: 0; transition: box-shadow 0.2s; }
+.voice-status { display: inline-flex; align-items: center; gap: 10px; font: 700 18px var(--f-display); color: var(--card-muted); }
+.voice-dot { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--sunk); color: var(--card-muted); }
+.voice-listening .voice-dot { background: var(--accent); color: var(--accent-ink); animation: voice-pulse 1.4s ease-out infinite; }
+.voice-listening .voice-status { color: var(--accent); }
+.voice-correct { box-shadow: 0 0 0 4px var(--good) inset, var(--shadow-card); }
+.voice-correct .voice-status { color: var(--good); }
+.voice-wrong { box-shadow: 0 0 0 4px var(--again) inset, var(--shadow-card); }
+.voice-wrong .voice-status { color: var(--again); }
+.voice-heard { color: var(--card-muted); font-size: 18px; max-width: 40ch; overflow-wrap: anywhere; }
+.voice-note { color: var(--card-muted); font-size: 17px; max-width: 46ch; }
+.voice-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.voice-controls .btn { flex: 1 1 140px; max-width: 260px; }
+.btn-quiet:disabled { opacity: 0.45; }
+@keyframes voice-pulse { 0% { box-shadow: 0 0 0 0 var(--accent-soft); } 70% { box-shadow: 0 0 0 16px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .voice-listening .voice-dot { animation: none; } }
+
 /* Self-update card (Android) */
 .update { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; text-align: left; }
 .update > div { display: grid; gap: 4px; min-width: 0; flex: 1 1 240px; }

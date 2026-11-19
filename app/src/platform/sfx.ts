@@ -39,6 +39,23 @@ function tone(freq: number, start: number, dur: number, type: OscillatorType = "
   o.stop(t + dur + 0.05);
 }
 
+/** A quick pitch slide, used for the balloon pop. */
+function slide(from: number, to: number, dur: number, type: OscillatorType = "square", vol = 0.08): void {
+  const c = audio();
+  if (!c) return;
+  const t = c.currentTime;
+  const o = c.createOscillator();
+  const g = c.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(from, t);
+  o.frequency.exponentialRampToValueAtTime(to, t + dur);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g).connect(c.destination);
+  o.start(t);
+  o.stop(t + dur + 0.05);
+}
+
 const semis = (base: number, n: number) => base * Math.pow(2, n / 12);
 
 export const sfx = {
@@ -64,6 +81,19 @@ export const sfx = {
   mic() {
     tone(587, 0, 0.09, "sine", 0.1);
     tone(880, 0.08, 0.14, "sine", 0.1);
+  },
+  /** A memory card turning over. */
+  flip() {
+    tone(1100, 0, 0.05, "sine", 0.08);
+  },
+  /** A balloon popping. */
+  pop() {
+    slide(1400, 120, 0.12);
+    tone(1800, 0.02, 0.06, "triangle", 0.06);
+  },
+  /** A letter clicking into its slot; the pitch climbs along the word. */
+  letter(i: number) {
+    tone(semis(523, Math.min(i, 12) * 2), 0, 0.12, "triangle", 0.12);
   },
   /** A new lamp on the island or a whole island lit. */
   sparkle() {

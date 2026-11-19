@@ -4,27 +4,52 @@
 // Tauri draws the app edge to edge, under the status bar and the navigation bar, but the
 // Android WebView reports 0 for env(safe-area-inset-*). This activity measures the system bars
 // and passes them to the web app through a JavaScript bridge (see src/platform/insets.ts).
-// The same bridge downloads and installs app updates from GitHub Releases (src/platform/update.ts).
+// The same bridge downloads and installs app updates from GitHub Releases (src/platform/update.ts)
+// and runs the system speech recogniser for the voice mode (src/platform/listen.ts), because the
+// Android WebView has no Web Speech API.
 package {{package}}
 
+import android.Manifest
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.view.WindowManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import org.json.JSONArray
+import org.json.JSONObject
 
 class MainActivity : TauriActivity() {
   private var webView: WebView? = null
   @Volatile private var insetsJson = "{\"top\":0,\"right\":0,\"bottom\":0,\"left\":0}"
+
+  // Voice mode: one recogniser at a time; events carry the id of the listen() call they answer.
+  private var recognizer: SpeechRecognizer? = null
+  private var listenId = ""
+  private var pendingListen: Pair<String, String>? = null
+  private val micPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+    val pending = pendingListen
+    pendingListen = null
+    if (pending != null) {
+      if (granted) startListening(pending.first, pending.second)
+      else speechEvent(pending.second, "error", error = "permission")
+    }
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
@@ -43,6 +68,19 @@ class MainActivity : TauriActivity() {
       insets
     }
     ViewCompat.requestApplyInsets(webView)
+  }
+
+  override fun onPause() {
+    // The recogniser must not keep the microphone while Echo is in the background. The microphone
+    // permission dialog also pauses the activity; that listen() has to survive it.
+    if (pendingListen == null) stopRecognizer()
+    super.onPause()
+  }
+
+  override fun onDestroy() {
+    recognizer?.destroy()
+    recognizer = null
+    super.onDestroy()
   }
 
   // The page may still be loading when the insets arrive, so the event is repeated a few times;
@@ -129,6 +167,42 @@ class MainActivity : TauriActivity() {
       return "started"
     }
 
+    // Voice mode. Results come back as "echo-speech" window events:
+    // {"id":…,"type":"ready"|"partial"|"result"|"error","texts":[…],"error":"silence"|"permission"|…}
+
+    @JavascriptInterface
+    fun speechAvailable(): Boolean = SpeechRecognizer.isRecognitionAvailable(this@MainActivity)
+
+    /** Starts listening in `lang` (e.g. "pl-PL"): "started", "permission" (Android is asking first) or "unavailable". */
+    @JavascriptInterface
+    fun listen(lang: String, id: String): String {
+      if (!SpeechRecognizer.isRecognitionAvailable(this@MainActivity)) return "unavailable"
+      val granted = ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+      runOnUiThread {
+        listenId = id
+        if (granted) startListening(lang, id)
+        else {
+          pendingListen = lang to id
+          micPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+      }
+      return if (granted) "started" else "permission"
+    }
+
+    @JavascriptInterface
+    fun stopListening() {
+      runOnUiThread { stopRecognizer() }
+    }
+
+    /** Keeps the screen on during a voice session; a locked phone stops speaking and listening. */
+    @JavascriptInterface
+    fun keepScreenOn(on: Boolean) {
+      runOnUiThread {
+        if (on) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+      }
+    }
+
     /** Deletes the last downloaded APK (called once the app is up to date). */
     @JavascriptInterface
     fun cleanupUpdates() {
@@ -137,6 +211,65 @@ class MainActivity : TauriActivity() {
       prefs().edit().remove(LAST_DOWNLOAD).apply()
       getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.listFiles()?.filter { it.name.endsWith(".apk") }?.forEach { it.delete() }
     }
+  }
+
+  private fun startListening(lang: String, id: String) {
+    if (id != listenId) return
+    // A fresh recogniser per answer: reusing one leaves some devices stuck in ERROR_RECOGNIZER_BUSY.
+    recognizer?.destroy()
+    val r = SpeechRecognizer.createSpeechRecognizer(this)
+    recognizer = r
+    r.setRecognitionListener(object : RecognitionListener {
+      override fun onReadyForSpeech(params: Bundle?) = speechEvent(id, "ready")
+      override fun onBeginningOfSpeech() {}
+      override fun onRmsChanged(rmsdB: Float) {}
+      override fun onBufferReceived(buffer: ByteArray?) {}
+      override fun onEndOfSpeech() {}
+      override fun onError(error: Int) = speechEvent(id, "error", error = errorName(error))
+      override fun onResults(results: Bundle?) = speechEvent(id, "result", texts(results))
+      override fun onPartialResults(partialResults: Bundle?) = speechEvent(id, "partial", texts(partialResults))
+      override fun onEvent(eventType: Int, params: Bundle?) {}
+    })
+    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+      .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+      .putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang)
+      .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+      .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+      .putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
+    try {
+      r.startListening(intent)
+    } catch (e: Exception) {
+      speechEvent(id, "error", error = "busy")
+    }
+  }
+
+  private fun stopRecognizer() {
+    listenId = ""
+    pendingListen = null
+    recognizer?.cancel()
+  }
+
+  private fun texts(bundle: Bundle?): List<String> =
+    bundle?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.filter { it.isNotBlank() } ?: emptyList()
+
+  private fun errorName(code: Int): String = when (code) {
+    SpeechRecognizer.ERROR_SPEECH_TIMEOUT, SpeechRecognizer.ERROR_NO_MATCH -> "silence"
+    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "permission"
+    SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT, SpeechRecognizer.ERROR_SERVER -> "network"
+    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "busy"
+    // ERROR_LANGUAGE_NOT_SUPPORTED and ERROR_LANGUAGE_UNAVAILABLE (Android 12+).
+    12, 13 -> "language"
+    else -> "other"
+  }
+
+  /** Sends a recogniser event to the page. Events of a cancelled listen() are dropped. */
+  private fun speechEvent(id: String, type: String, texts: List<String> = emptyList(), error: String? = null) {
+    if (id != listenId) return
+    if (type == "result" || type == "error") listenId = ""
+    val json = JSONObject().put("id", id).put("type", type).put("texts", JSONArray(texts))
+    if (error != null) json.put("error", error)
+    val detail = JSONObject.quote(json.toString())
+    webView?.post { webView?.evaluateJavascript("window.dispatchEvent(new CustomEvent('echo-speech',{detail:$detail}))", null) }
   }
 
   private fun downloads() = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager

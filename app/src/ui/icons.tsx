@@ -12,6 +12,8 @@ const PATHS = {
   map: <><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z" /><path d="M9 4v13.5M15 6.5V20" /></>,
   quiz: <><circle cx="12" cy="12" r="9" /><path d="M9.2 9.3a2.9 2.9 0 0 1 5.6.9c0 1.9-2.8 2.4-2.8 4" /><path d="M12 17.2v.1" /></>,
   back: <path d="M14.5 5.5L8 12l6.5 6.5" />,
+  mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0" /><path d="M12 17.5V21" /></>,
+  pause: <path d="M8.5 5v14M15.5 5v14" />,
   next: <path d="M9.5 5.5L16 12l-6.5 6.5" />,
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   trash: <><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" /></>,

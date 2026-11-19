@@ -1,6 +1,7 @@
-// Run after `tauri android init`: puts Echo's own MainActivity (system bar insets and self-update
-// bridge) into the generated Android project, lets it install updates and, when
-// src-tauri/gen/android/keystore.properties exists, signs every build type with that stable key. Usage: node scripts/android-shell.mjs
+// Run after `tauri android init`: puts Echo's own MainActivity (system bar insets, self-update and
+// speech recognition bridge) into the generated Android project, lets it install updates and record
+// spoken answers and, when src-tauri/gen/android/keystore.properties exists, signs every build type
+// with that stable key. Usage: node scripts/android-shell.mjs
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,19 +18,25 @@ const source = fs.readFileSync(path.join(app, "src-tauri/android/MainActivity.kt
 fs.writeFileSync(target, source.replace("{{package}}", pkg));
 console.log(`Replaced ${path.relative(app, target)}`);
 
-// Self-update (MainActivity.installUpdate) opens the system installer, which needs this permission.
+// Manifest entries Echo's activity needs:
+// - self-update (MainActivity.installUpdate) opens the system installer;
+// - the voice mode records the spoken answer and, from Android 11, has to declare that it looks
+//   for the system speech recognition service, or SpeechRecognizer reports it as missing.
 const manifest = path.join(app, "src-tauri/gen/android/app/src/main/AndroidManifest.xml");
-const installPermission = '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />';
+const entries = [
+  ["REQUEST_INSTALL_PACKAGES", '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />'],
+  ["RECORD_AUDIO", '<uses-permission android:name="android.permission.RECORD_AUDIO" />'],
+  ["android.speech.RecognitionService", '<queries><intent><action android:name="android.speech.RecognitionService" /></intent></queries>'],
+];
 let m = fs.readFileSync(manifest, "utf8");
-if (!m.includes("REQUEST_INSTALL_PACKAGES")) {
-  if (!/^[ \t]*<application\b/m.test(m)) {
-    console.error(`No <application> element in ${path.relative(app, manifest)}; the generated file has changed.`);
-    process.exit(1);
-  }
-  m = m.replace(/^([ \t]*)<application\b/m, (all, indent) => `${indent}${installPermission}\n${all}`);
-  fs.writeFileSync(manifest, m);
+if (!/^[ \t]*<application\b/m.test(m)) {
+  console.error(`No <application> element in ${path.relative(app, manifest)}; the generated file has changed.`);
+  process.exit(1);
 }
-console.log(`Allowed installing updates in ${path.relative(app, manifest)}`);
+for (const [key, entry] of entries)
+  if (!m.includes(key)) m = m.replace(/^([ \t]*)<application\b/m, (all, indent) => `${indent}${entry}\n${all}`);
+fs.writeFileSync(manifest, m);
+console.log(`Allowed installing updates, the microphone and speech recognition in ${path.relative(app, manifest)}`);
 
 // Stable signing key. Android only installs an update over an existing app when both are signed
 // with the same key; the default debug key is new on every CI machine, which forced an uninstall

@@ -73,6 +73,17 @@ export type Settings = {
   sounds?: boolean;
   /** Kids map: all islands open at once instead of waking one after another. */
   kidsOpenAll?: boolean;
+  /** Voice mode: the choices of the last session. */
+  voice?: VoicePrefs;
+};
+
+/** Voice mode: direction, which words, how many, and whether answers are spoken or only listened to. */
+export type VoicePrefs = {
+  dir: "en-pl" | "pl-en" | "mixed";
+  scope: "all" | "due" | "hard" | "new";
+  limit: number;
+  decks: string[];
+  mic: boolean;
 };
 
 export type AppState = {

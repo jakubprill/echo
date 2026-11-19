@@ -63,6 +63,9 @@ export type DayLog = { reviews: number; fresh: number; correct: number };
 /** A child's progress: level 0–3 (Leitner boxes) and a sticker for the first hit. */
 export type KidsWord = { level: number; sticker: boolean; seen: number };
 
+/** A child's stars, words and mini-game tickets (missing in older saves means none). */
+export type KidsState = { stars: number; words: Record<string, KidsWord>; tickets?: number };
+
 export type Settings = {
   line: Audience | null;
   theme: "system" | "light" | "dark";
@@ -93,7 +96,7 @@ export type AppState = {
   decks: Deck[];
   progress: Record<string, CardProgress>;
   log: Record<string, DayLog>;
-  kids: { stars: number; words: Record<string, KidsWord> };
+  kids: KidsState;
   settings: Settings;
 };
 

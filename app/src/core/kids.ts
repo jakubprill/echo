@@ -69,7 +69,7 @@ export function buildRound(deck: Deck, s: AppState, rnd: () => number = Math.ran
 export function applyKidsAnswer(s: AppState, cardId: string, firstTry: boolean): AppState {
   const w = word(s, cardId);
   const next: KidsWord = firstTry ? { level: Math.min(MAX_LEVEL, w.level + 1), sticker: true, seen: w.seen + 1 } : { level: Math.max(0, w.level - 1), sticker: w.sticker, seen: w.seen + 1 };
-  return { ...s, kids: { stars: s.kids.stars + (firstTry ? 1 : 0), words: { ...s.kids.words, [cardId]: next } } };
+  return { ...s, kids: { ...s.kids, stars: s.kids.stars + (firstTry ? 1 : 0), words: { ...s.kids.words, [cardId]: next } } };
 }
 
 /** Sticker finish shown in the album: 0 none, 1 bronze, 2 silver, 3 gold (the word's level, at least bronze once earned). */

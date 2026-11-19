@@ -1,6 +1,6 @@
-// Run after `tauri android init`: puts Echo's own MainActivity (system bar insets bridge)
-// into the generated Android project and, when src-tauri/gen/android/keystore.properties exists,
-// signs every build type with that stable key. Usage: node scripts/android-shell.mjs
+// Run after `tauri android init`: puts Echo's own MainActivity (system bar insets and self-update
+// bridge) into the generated Android project, lets it install updates and, when
+// src-tauri/gen/android/keystore.properties exists, signs every build type with that stable key. Usage: node scripts/android-shell.mjs
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,6 +16,20 @@ if (!fs.existsSync(target)) {
 const source = fs.readFileSync(path.join(app, "src-tauri/android/MainActivity.kt"), "utf8");
 fs.writeFileSync(target, source.replace("{{package}}", pkg));
 console.log(`Replaced ${path.relative(app, target)}`);
+
+// Self-update (MainActivity.installUpdate) opens the system installer, which needs this permission.
+const manifest = path.join(app, "src-tauri/gen/android/app/src/main/AndroidManifest.xml");
+const installPermission = '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />';
+let m = fs.readFileSync(manifest, "utf8");
+if (!m.includes("REQUEST_INSTALL_PACKAGES")) {
+  if (!/^[ \t]*<application\b/m.test(m)) {
+    console.error(`No <application> element in ${path.relative(app, manifest)}; the generated file has changed.`);
+    process.exit(1);
+  }
+  m = m.replace(/^([ \t]*)<application\b/m, (all, indent) => `${indent}${installPermission}\n${all}`);
+  fs.writeFileSync(manifest, m);
+}
+console.log(`Allowed installing updates in ${path.relative(app, manifest)}`);
 
 // Stable signing key. Android only installs an update over an existing app when both are signed
 // with the same key; the default debug key is new on every CI machine, which forced an uninstall

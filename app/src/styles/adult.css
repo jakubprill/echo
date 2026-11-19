@@ -221,3 +221,10 @@
   .profile small { font-size: 13px; }
   .profile-art.profile-avatar, .profile-add .profile-art { height: 64px; font-size: 54px; }
 }
+
+/* Self-update card (Android) */
+.update { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; text-align: left; }
+.update > div { display: grid; gap: 4px; min-width: 0; flex: 1 1 240px; }
+.update b { font: 700 19px var(--f-display); }
+.update .update-bar { flex: 1 1 100%; }
+.chooser .update { width: min(100%, 720px); }

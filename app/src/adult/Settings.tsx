@@ -9,6 +9,8 @@ import { autoBackups, listBackups, readBackup } from "../platform/storage";
 import { getHousehold, say, update, updateHousehold, useAppState, useHousehold } from "../state/store";
 import { Icon } from "../ui/icons";
 import { VoiceNotice } from "../ui/VoiceNotice";
+import { UpdateBanner } from "../ui/UpdateBanner";
+import { canSelfUpdate, checkForUpdate, useUpdate } from "../platform/update";
 
 const set = (patch: Partial<S>) => update((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
 
@@ -155,8 +157,27 @@ export function Settings() {
         <div className="row">
           <button className="btn btn-quiet" onClick={leaveProfile}><Icon name="user" /> Zmień profil</button>
         </div>
-        <p className="sub">Echo {__ECHO_VERSION__}</p>
+        {!canSelfUpdate() && <p className="sub">Echo {__ECHO_VERSION__}</p>}
       </section>
+
+      {canSelfUpdate() && <Updates />}
     </div>
+  );
+}
+
+function Updates() {
+  const u = useUpdate();
+  const note = u.phase === "checking" ? "Sprawdzam…" : u.phase === "latest" ? "Masz najnowszą wersję." : u.phase === "offline" ? "Nie udało się sprawdzić. Sprawdź internet." : null;
+  const busy = u.phase === "checking" || u.phase === "downloading";
+  return (
+    <section className="panel form">
+      <h2>Aktualizacje</h2>
+      <p className="sub">Masz Echo {__ECHO_VERSION__}. Echo sprawdza nowe wersje przy każdym uruchomieniu.</p>
+      <UpdateBanner />
+      <div className="row">
+        <button className="btn btn-quiet" disabled={busy} onClick={() => void checkForUpdate()}><Icon name="import" /> Sprawdź aktualizacje</button>
+      </div>
+      {note && <p className={`notice ${u.phase === "offline" ? "notice-no" : "notice-ok"}`} role="status">{note}</p>}
+    </section>
   );
 }

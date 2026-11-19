@@ -176,3 +176,4 @@
 /* word pictures (WordPic): built-in pictures sit on a white tile so they read well on the night sky */
 .wordpic { display: inline-grid; place-items: center; line-height: 1; vertical-align: middle; }
 .wordpic img { width: 1.15em; height: 1.15em; object-fit: contain; border-radius: 0.14em; background: #fff; padding: 0.06em; box-sizing: border-box; -webkit-user-drag: none; }
+.wordpic .wp-multi { font-size: 0.6em; }

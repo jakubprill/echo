@@ -92,6 +92,7 @@ Styles: `tokens.css` carries over the tokens from the design system (same names,
 ## Content
 
 - Deck: an `echo-deck` file (v1, or v2 with the fields `emoji`, `exPl`, `topics`, `unit`, `book`, `audience`). Unknown fields are ignored, so newer decks work in an older app.
+- Folders: decks are grouped in the deck lists (adults) and on a shelf of worlds (Kids, only when there is more than one). A deck's optional `folder` field names its folder; without it, a deck with a `book` goes into the book's folder (title from the `echo-book` file, else the deck title before " – ", else the book id). Other decks stay loose. Inside a folder the folder name is dropped from deck titles. A folder can be studied, quizzed or practised by voice as a whole. Grouping is computed from deck fields only, so card progress is unaffected (`core/folders.ts`).
 - Book: an `echo-book` file with a list of units. The Kids line draws its map from it: each unit is an island, and units without a deck are shown as locked.
 - `audience: "kids"` routes a deck to Echo Kids; everything else goes to Echo.
 - Bundled decks are picked up by a Vite plugin from the `ECHO_CONTENT_DIR` directory (default `examples/`). The public repository and CI builds contain only the example decks written for the project. The private build (artifact) points at a directory with the real decks, which is not in the repository.

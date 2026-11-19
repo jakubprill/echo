@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { dayNumber, dayToDate } from "../core/date";
+import { groupDecks, shortTitle, type Folder } from "../core/folders";
 import { counts } from "../core/session";
 import { lastDays, streak } from "../core/stats";
-import { decksFor, useAppState } from "../state/store";
+import { bundledBooks, decksFor, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
 import { VoiceNotice } from "../ui/VoiceNotice";
 import { UpdateBanner } from "../ui/UpdateBanner";
 import type { Nav } from "./AdultApp";
+import { FolderTile } from "./Folders";
+import type { Deck } from "../core/types";
 
 const DAYS = ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "So"];
 
@@ -26,6 +30,22 @@ export function Home({ nav }: { nav: Nav }) {
   const st = streak(s, today);
   const date = new Date().toLocaleDateString("pl-PL", { weekday: "long", day: "numeric", month: "long" });
   const hour = new Date().getHours();
+  const groups = groupDecks(decks, bundledBooks);
+  const [folderId, setFolderId] = useState<string | null>(null);
+  const folder: Folder | undefined = groups.folders.find((f) => f.id === folderId);
+
+  const tile = (d: Deck, inFolder?: Folder) => {
+    const dc = counts([d], s, today);
+    const info = dc.due > 0 ? `${dc.due} do powtórki` : dc.learned < dc.total ? `${dc.total - dc.learned} ${plural(dc.total - dc.learned, "nowe", "nowe", "nowych")}` : "wszystko powtórzone";
+    return (
+      <button key={d.id} className="deck" onClick={() => nav({ name: "study", deckId: d.id })}>
+        <span className="chip">{d.cards.length} {plural(d.cards.length, "słówko", "słówka", "słówek")}</span>
+        <b>{inFolder ? shortTitle(d, inFolder.title) : d.title}</b>
+        <span className="bar"><i style={{ width: `${(dc.learned / dc.total) * 100}%` }} /></span>
+        <small>{info}</small>
+      </button>
+    );
+  };
 
   return (
     <div className="page">
@@ -81,21 +101,27 @@ export function Home({ nav }: { nav: Nav }) {
 
       {decks.length > 0 && (
         <section>
-          <h2>Talie</h2>
-          <div className="decks">
-            {decks.map((d) => {
-              const dc = counts([d], s, today);
-              const info = dc.due > 0 ? `${dc.due} do powtórki` : dc.learned < dc.total ? `${dc.total - dc.learned} ${plural(dc.total - dc.learned, "nowe", "nowe", "nowych")}` : "wszystko powtórzone";
-              return (
-                <button key={d.id} className="deck" onClick={() => nav({ name: "study", deckId: d.id })}>
-                  <span className="chip">{d.cards.length} {plural(d.cards.length, "słówko", "słówka", "słówek")}</span>
-                  <b>{d.title}</b>
-                  <span className="bar"><i style={{ width: `${(dc.learned / dc.total) * 100}%` }} /></span>
-                  <small>{info}</small>
-                </button>
-              );
-            })}
-          </div>
+          {folder ? (
+            <>
+              <div className="head-row">
+                <button className="round" onClick={() => setFolderId(null)} aria-label="Wróć do wszystkich talii"><Icon name="back" /></button>
+                <div>
+                  <p className="crumb"><Icon name="folder" size={16} /> Folder</p>
+                  <h2 className="h2-inline">{folder.title}</h2>
+                </div>
+                <button className="btn" onClick={() => nav({ name: "study", folder: folder.id })}><Icon name="play" /> Ucz się z folderu</button>
+              </div>
+              <div className="decks">{folder.decks.map((d) => tile(d, folder))}</div>
+            </>
+          ) : (
+            <>
+              <h2>Talie</h2>
+              <div className="decks">
+                {groups.folders.map((f) => <FolderTile key={f.id} folder={f} s={s} today={today} onOpen={() => setFolderId(f.id)} />)}
+                {groups.loose.map((d) => tile(d))}
+              </div>
+            </>
+          )}
         </section>
       )}
     </div>

@@ -8,7 +8,7 @@ import { Progress } from "./Progress";
 import { Settings } from "./Settings";
 import { Voice } from "./Voice";
 
-export type View = { name: "home" | "decks" | "progress" | "settings" | "study" | "quiz" | "voice"; deckId?: string };
+export type View = { name: "home" | "decks" | "progress" | "settings" | "study" | "quiz" | "voice"; deckId?: string; folder?: string };
 export type Nav = (v: View) => void;
 
 const TABS: { name: "home" | "decks" | "quiz" | "progress" | "settings"; icon: IconName; label: string }[] = [
@@ -39,10 +39,10 @@ export function AdultApp() {
       )}
       <main className="main">
         {view.name === "home" && <Home nav={setView} />}
-        {view.name === "study" && <Study deckId={view.deckId} nav={setView} />}
-        {view.name === "voice" && <Voice key={view.deckId ?? "all"} deckId={view.deckId} nav={setView} />}
-        {view.name === "quiz" && <Quiz key={view.deckId ?? "all"} deckId={view.deckId} nav={setView} />}
-        {view.name === "decks" && <Decks nav={setView} />}
+        {view.name === "study" && <Study deckId={view.deckId} folder={view.folder} nav={setView} />}
+        {view.name === "voice" && <Voice key={view.deckId ?? view.folder ?? "all"} deckId={view.deckId} folder={view.folder} nav={setView} />}
+        {view.name === "quiz" && <Quiz key={view.deckId ?? view.folder ?? "all"} deckId={view.deckId} folder={view.folder} nav={setView} />}
+        {view.name === "decks" && <Decks key={view.folder ?? "all"} nav={setView} folder={view.folder} />}
         {view.name === "progress" && <Progress />}
         {view.name === "settings" && <Settings />}
       </main>

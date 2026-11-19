@@ -163,3 +163,12 @@
 .rwoke > span { font-size: clamp(32px, 6vmin, 48px); line-height: 1; }
 .rwoke b { display: block; font: 800 clamp(16px, 3vmin, 22px)/1.2 var(--f-kd); }
 .rwoke small { color: var(--muted); font-size: clamp(14px, 2.4vmin, 18px); }
+
+/* shelf: one big card per book (folder); shown only when the kids have more than one */
+.kshelf { grid-row: 2 / 4; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(220px, 34vmin, 320px)), 1fr)); align-content: start; gap: clamp(16px, 3vmin, 32px); padding: clamp(12px, 3vmin, 32px) max(clamp(12px, 4vmin, 48px), var(--safe-right)) calc(clamp(16px, 4vmin, 40px) + var(--safe-bottom)) max(clamp(12px, 4vmin, 48px), var(--safe-left)); }
+.kworld { position: relative; display: grid; justify-items: center; align-content: start; gap: 10px; padding: clamp(28px, 5vmin, 44px) 20px clamp(20px, 3.5vmin, 32px); border: 0; border-radius: var(--r-kids); background: var(--card); color: var(--card-ink); box-shadow: 0 8px 0 var(--card-edge); text-align: center; transition: transform 0.1s; }
+.kworld:active { transform: translateY(6px); box-shadow: 0 2px 0 var(--card-edge); }
+.kworld-e { font-size: clamp(56px, 11vmin, 88px); line-height: 1; }
+.kworld b { font: 800 clamp(22px, 4.2vmin, 32px)/1.15 var(--f-kd); text-wrap: balance; }
+.kworld small { font: 700 clamp(16px, 2.8vmin, 20px) var(--f-kb); opacity: 0.75; }
+.kworld .lamps { position: static; align-items: center; height: auto; flex-wrap: wrap; justify-content: center; }

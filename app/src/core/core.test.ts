@@ -4,7 +4,8 @@ import { review } from "./sm2";
 import { applyGrade, buildQueue, counts, markDueNow, requeue } from "./session";
 import { DeckError, exportBackup, mergeDecks, parseBackup, parseDeckFile } from "./deck";
 import { buildQuiz, checkTyped } from "./quiz";
-import { applyKidsAnswer, bestStreak, buildRound, islands, roundStars, stickerTier } from "./kids";
+import { applyKidsAnswer, bestStreak, buildRound, islands, kidsWorlds, LOOSE_WORLD, roundStars, stickerTier } from "./kids";
+import { groupDecks, pickDecks, shortTitle } from "./folders";
 import { streak } from "./stats";
 import { backupPlan, isoDay } from "./backups";
 import { compareVersions, newestUpdate } from "./update";
@@ -307,5 +308,53 @@ describe("self-update", () => {
   it("a final release outranks its pre-releases", () => {
     expect(newestUpdate([rel("v0.1.0")], "0.1.0-alpha.9")?.version).toBe("0.1.0");
     expect(newestUpdate([rel("v0.1.0-alpha.9")], "0.1.0")).toBeNull();
+  });
+});
+
+describe("deck folders", () => {
+  const e2 = deck("e4it-2", 2, { title: "English 4 IT – 2. Databases", book: "english-4-it", unit: "unit-02" });
+  const e1 = deck("e4it-1", 2, { title: "English 4 IT – 1. What is IT?", book: "english-4-it", unit: "unit-01" });
+  const esl = deck("eslb", 2, { title: "ESL Brains – Nature", book: "esl-brains", unit: "nature" });
+  const lesson = deck("lesson", 2, { title: "Lekcja 5.11" });
+  const tagged = deck("idioms", 2, { title: "Idiomy 5.11", folder: "Lekcje z lektorką" });
+  const tagged2 = deck("c2", 2, { title: "C2 9.11", folder: "lekcje z lektorką" });
+
+  it("groups decks by folder or book, keeps the rest loose, orders units naturally", () => {
+    const g = groupDecks([lesson, e2, esl, tagged, e1, tagged2]);
+    expect(g.folders.map((f) => [f.title, f.decks.map((d) => d.id)])).toEqual([
+      ["English 4 IT", ["e4it-1", "e4it-2"]],
+      ["ESL Brains", ["eslb"]],
+      ["Lekcje z lektorką", ["idioms", "c2"]],
+    ]);
+    expect(g.loose.map((d) => d.id)).toEqual(["lesson"]);
+  });
+  it("uses the book title and unit order from the book file when it is known", () => {
+    const book = { format: "echo-book" as const, version: 1, id: "english-4-it", title: "English 4 IT (Helion)", units: [{ id: "unit-02", title: "Two" }, { id: "unit-01", title: "One" }] };
+    const g = groupDecks([e1, e2], [book]);
+    expect(g.folders[0].title).toBe("English 4 IT (Helion)");
+    expect(g.folders[0].decks.map((d) => d.id)).toEqual(["e4it-2", "e4it-1"]);
+  });
+  it("falls back to the book id when the title has no prefix", () => {
+    expect(groupDecks([deck("x", 1, { book: "hello-explorer-2" })]).folders[0].title).toBe("Hello explorer 2");
+  });
+  it("shortens titles inside a folder and picks decks for a session", () => {
+    expect(shortTitle(e2, "English 4 IT")).toBe("2. Databases");
+    expect(shortTitle(lesson, null)).toBe("Lekcja 5.11");
+    expect(pickDecks([e1, e2, esl], { folder: "english 4 it" }).map((d) => d.id)).toEqual(["e4it-1", "e4it-2"]);
+    expect(pickDecks([e1, e2, esl], { deckId: "eslb" }).map((d) => d.id)).toEqual(["eslb"]);
+    expect(pickDecks([e1, e2, esl], {})).toHaveLength(3);
+  });
+  it("keeps the folder field on import", () => {
+    const [d] = parseDeckFile(JSON.stringify({ ...tagged }));
+    expect(d.folder).toBe("Lekcje z lektorką");
+  });
+  it("gives kids one world per book, each waking its own islands", () => {
+    const k = (id: string, extra: Partial<Deck>) => deck(id, 3, { audience: "kids", ...extra });
+    const w = kidsWorlds([k("a1", { title: "Book A – 1", book: "a", unit: "u1" }), k("b1", { title: "Book B – 1", book: "b", unit: "u1" }), k("a2", { title: "Book A – 2", book: "a", unit: "u2" }), k("z", {})], [], defaultState());
+    expect(w.map((x) => [x.id, x.islands.map((i) => [i.id, i.asleep])])).toEqual([
+      ["book a", [["a1", false], ["a2", true]]],
+      ["book b", [["b1", false]]],
+      [LOOSE_WORLD, [["z", false]]],
+    ]);
   });
 });

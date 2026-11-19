@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { audienceOf, DeckError, parseDeckFile } from "../core/deck";
 import { dayNumber } from "../core/date";
+import { groupDecks, shortTitle, type Folder } from "../core/folders";
 import { counts } from "../core/session";
 import type { Deck } from "../core/types";
 import { pickTextFile } from "../platform/files";
-import { allDecks, isBundled, say, update, useAppState } from "../state/store";
+import { allDecks, bundledBooks, isBundled, say, update, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
 import type { Nav } from "./AdultApp";
+import { FolderHead, FolderTile } from "./Folders";
 import { plural } from "./Home";
 
 /** Loads decks from a file and adds them to the state (a deck with the same id is replaced). */
@@ -27,9 +29,10 @@ export async function importDecks(): Promise<{ ok: boolean; text: string } | nul
   }
 }
 
-export function Decks({ nav }: { nav: Nav }) {
+export function Decks({ nav, folder: initialFolder }: { nav: Nav; folder?: string }) {
   const s = useAppState();
   const [open, setOpen] = useState<string | null>(null);
+  const [folderId, setFolderId] = useState<string | null>(initialFolder ?? null);
   const [query, setQuery] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirm, setConfirm] = useState(false);
@@ -38,6 +41,9 @@ export function Decks({ nav }: { nav: Nav }) {
   const adults = all.filter((d) => audienceOf(d) === "adults");
   const kids = all.filter((d) => audienceOf(d) === "kids");
   const deck = all.find((d) => d.id === open);
+  const adultGroups = groupDecks(adults, bundledBooks);
+  const kidsGroups = groupDecks(kids, bundledBooks);
+  const folder: Folder | undefined = [...adultGroups.folders, ...kidsGroups.folders].find((f) => f.id === folderId);
 
   if (deck) {
     const q = query.trim().toLowerCase();
@@ -48,7 +54,8 @@ export function Decks({ nav }: { nav: Nav }) {
         <header className="head-row">
           <button className="round" onClick={() => { setOpen(null); setQuery(""); setConfirm(false); }} aria-label="Wróć do listy talii"><Icon name="back" /></button>
           <div>
-            <h1>{deck.title}</h1>
+            {folder && <p className="crumb"><Icon name="folder" size={16} /> {folder.title}</p>}
+            <h1>{folder ? shortTitle(deck, folder.title) : deck.title}</h1>
             <p className="sub">{[deck.level, deck.source].filter(Boolean).join(" · ")}</p>
           </div>
         </header>
@@ -83,18 +90,43 @@ export function Decks({ nav }: { nav: Nav }) {
     );
   }
 
-  const tile = (d: Deck) => {
+  const tile = (d: Deck, inFolder?: Folder) => {
     const dc = counts([d], s, today);
     const isKids = audienceOf(d) === "kids";
     return (
       <button key={d.id} className="deck" onClick={() => setOpen(d.id)}>
         <span className="chip">{d.cards.length} {plural(d.cards.length, "słówko", "słówka", "słówek")}</span>
-        <b>{d.title}</b>
+        <b>{inFolder ? shortTitle(d, inFolder.title) : d.title}</b>
         {!isKids && <span className="bar"><i style={{ width: `${(dc.learned / dc.total) * 100}%` }} /></span>}
         <small>{isKids ? "Echo Kids" : `${dc.learned} z ${dc.total} w nauce`}{isBundled(d.id) ? " · wbudowana" : ""}</small>
       </button>
     );
   };
+
+  if (folder) {
+    const isKids = folder.decks.every((d) => audienceOf(d) === "kids");
+    const words = folder.decks.reduce((a, d) => a + d.cards.length, 0);
+    return (
+      <div className="page">
+        <FolderHead folder={folder} onBack={() => setFolderId(null)} sub={`${folder.decks.length} ${plural(folder.decks.length, "talia", "talie", "talii")} · ${words} ${plural(words, "słówko", "słówka", "słówek")}${isKids ? " · Echo Kids" : ""}`} />
+        {!isKids && (
+          <div className="row">
+            <button className="btn" onClick={() => nav({ name: "study", folder: folder.id })}><Icon name="play" /> Ucz się z całego folderu</button>
+            <button className="btn btn-quiet" onClick={() => nav({ name: "quiz", folder: folder.id })}><Icon name="quiz" /> Quiz</button>
+            <button className="btn btn-quiet" onClick={() => nav({ name: "voice", folder: folder.id })}><Icon name="mic" /> Głosowo</button>
+          </div>
+        )}
+        <div className="decks">{folder.decks.map((d) => tile(d, folder))}</div>
+      </div>
+    );
+  }
+
+  const grid = (g: ReturnType<typeof groupDecks>, kidsLine: boolean) => (
+    <div className="decks">
+      {g.folders.map((f) => <FolderTile key={f.id} folder={f} s={s} today={today} kids={kidsLine} onOpen={() => setFolderId(f.id)} />)}
+      {g.loose.map((d) => tile(d))}
+    </div>
+  );
 
   return (
     <div className="page">
@@ -107,11 +139,11 @@ export function Decks({ nav }: { nav: Nav }) {
       </header>
       {msg && <p className={`notice ${msg.ok ? "notice-ok" : "notice-no"}`} role="status">{msg.text}</p>}
       {adults.length === 0 && kids.length === 0 && <p className="empty">Nie ma jeszcze żadnej talii. Wczytaj plik, żeby zacząć naukę.</p>}
-      {adults.length > 0 && <div className="decks">{adults.map(tile)}</div>}
+      {adults.length > 0 && grid(adultGroups, false)}
       {kids.length > 0 && (
         <section>
           <h2>Dla dzieci</h2>
-          <div className="decks">{kids.map(tile)}</div>
+          {grid(kidsGroups, true)}
         </section>
       )}
     </div>

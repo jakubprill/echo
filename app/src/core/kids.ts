@@ -1,5 +1,6 @@
 import type { AppState, Book, Card, Deck, KidsWord } from "./types";
 import { shuffle } from "./date";
+import { groupDecks, shortTitle } from "./folders";
 
 export const ROUND_SIZE = 6;
 export const MAX_LEVEL = 3;
@@ -91,4 +92,26 @@ export function bestStreak(firstTries: boolean[]): number {
     best = Math.max(best, run);
   }
   return best;
+}
+
+/** A world on the kids' shelf: one folder (usually a textbook) with its own map of islands. */
+export type KidsWorld = { id: string; title: string; islands: Island[] };
+
+export const LOOSE_WORLD = "__other";
+
+/**
+ * Kids decks grouped by folder, each with its own island map (islands wake one after another within a world).
+ * Decks outside any folder share one world, "Inne wyspy".
+ */
+export function kidsWorlds(decks: Deck[], books: Book[], s: AppState, openAll = false): KidsWorld[] {
+  const g = groupDecks(decks, books);
+  // Inside a book the islands are named by unit: "Unit 1: Family" instead of "Hello Explorer 2 – Unit 1: Family".
+  const world = (id: string, title: string, ds: Deck[]): KidsWorld => ({
+    id,
+    title,
+    islands: islands(id === LOOSE_WORLD ? ds : ds.map((d) => ({ ...d, title: shortTitle(d, title) })), books.filter((b) => ds.some((d) => d.book === b.id)), s, openAll),
+  });
+  const out = g.folders.map((f) => world(f.id, f.title, f.decks));
+  if (g.loose.length) out.push(world(LOOSE_WORLD, "Inne wyspy", g.loose));
+  return out;
 }

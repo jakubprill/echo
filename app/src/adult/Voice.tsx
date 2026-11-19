@@ -2,6 +2,7 @@
 // the spoken translation and moves on by itself. The rules live in core/voice.ts; this screen only
 // drives speech and the microphone in a loop and shows what is happening.
 import { useEffect, useMemo, useRef, useState } from "react";
+import { pickDecks } from "../core/folders";
 import { dayNumber } from "../core/date";
 import {
   advance, answerLang, answerText, buildVoiceQueue, judge, overrule, promptLang, promptText, recordAnswer, restore, scopeCards, snapshot, speakable, startSession,
@@ -10,7 +11,7 @@ import {
 import { canListen, keepScreenOn, listen, listensNatively, stopListening, type ListenError } from "../platform/listen";
 import { setSfxEnabled, sfx } from "../platform/sfx";
 import { hasPolishVoice, speakAndWait, stopSpeaking, ttsAvailable } from "../platform/tts";
-import { decksFor, getState, update, useAppState } from "../state/store";
+import { bundledBooks, decksFor, getState, update, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
 import { VoiceNotice } from "../ui/VoiceNotice";
 import type { Nav } from "./AdultApp";
@@ -21,15 +22,15 @@ const LIMITS: [string, string][] = [["10", "10"], ["20", "20"], ["30", "30"], ["
 const SCOPES: [VoiceScope, string][] = [["all", "Wszystkie"], ["due", "Do powtórki"], ["hard", "Trudne"], ["new", "Nowe"]];
 const DIRS: [VoiceDir, string][] = [["en-pl", "Angielski → polski"], ["pl-en", "Polski → angielski"], ["mixed", "Na zmianę"]];
 
-export function Voice({ deckId, nav }: { deckId?: string; nav: Nav }) {
+export function Voice({ deckId, folder, nav }: { deckId?: string; folder?: string; nav: Nav }) {
   const [run, setRun] = useState<{ queue: VoiceItem[]; mic: boolean; n: number } | null>(null);
   if (run) return <VoiceRun key={run.n} queue={run.queue} mic={run.mic} onBack={() => setRun(null)} onAgain={(queue) => setRun({ queue, mic: run.mic, n: run.n + 1 })} nav={nav} />;
-  return <VoiceSetup deckId={deckId} nav={nav} onStart={(queue, mic) => setRun({ queue, mic, n: 1 })} />;
+  return <VoiceSetup deckId={deckId} folder={folder} nav={nav} onStart={(queue, mic) => setRun({ queue, mic, n: 1 })} />;
 }
 
 // ─── choosing the words ─────────────────────────────────────────────────────────
 
-function VoiceSetup({ deckId, nav, onStart }: { deckId?: string; nav: Nav; onStart: (queue: VoiceItem[], mic: boolean) => void }) {
+function VoiceSetup({ deckId, folder, nav, onStart }: { deckId?: string; folder?: string; nav: Nav; onStart: (queue: VoiceItem[], mic: boolean) => void }) {
   const s = useAppState();
   const today = dayNumber();
   const decks = decksFor(s, "adults");
@@ -40,7 +41,7 @@ function VoiceSetup({ deckId, nav, onStart }: { deckId?: string; nav: Nav; onSta
   const [limit, setLimit] = useState(prefs?.limit ?? 20);
   const [mic, setMic] = useState(hearing && (prefs?.mic ?? true));
   const [chosen, setChosen] = useState<Set<string>>(() => {
-    if (deckId) return new Set([deckId]);
+    if (deckId || folder) return new Set(pickDecks(decks, { deckId, folder }, bundledBooks).map((d) => d.id));
     const last = (prefs?.decks ?? []).filter((id) => decks.some((d) => d.id === id));
     return new Set(last.length ? last : decks.map((d) => d.id));
   });

@@ -42,7 +42,7 @@ export function parseDeck(raw: unknown): Deck {
     to: str(d.to) || "pl",
     cards,
   };
-  for (const k of ["source", "level", "book", "unit"] as const) {
+  for (const k of ["source", "level", "book", "unit", "folder"] as const) {
     const v = str(d[k]);
     if (v) deck[k] = v;
   }

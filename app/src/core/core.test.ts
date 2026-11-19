@@ -6,6 +6,7 @@ import { DeckError, exportBackup, mergeDecks, parseBackup, parseDeckFile } from 
 import { buildQuiz, checkTyped } from "./quiz";
 import { applyKidsAnswer, bestStreak, buildRound, islands, kidsWorlds, LOOSE_WORLD, roundStars, stickerTier, wakeNeed } from "./kids";
 import { groupDecks, pickDecks, shortTitle } from "./folders";
+import { addTickets, balloonWaves, canPlayGames, finishGame, gameWords, isPair, memoryBoard, memoryStars, letterTiles, spellable, spellSlots, spendTicket, tickets, ticketsFor } from "./games";
 import { streak } from "./stats";
 import { backupPlan, isoDay } from "./backups";
 import { compareVersions, newestUpdate } from "./update";
@@ -261,6 +262,66 @@ describe("kids line", () => {
     // An island that already has stickers stays awake.
     s = applyKidsAnswer(defaultState(), d3.cards[0].id, true);
     expect(islands([d, d2, d3], [book], s).map((i) => i.asleep)).toEqual([false, true, false]);
+  });
+});
+
+describe("kids mini-games", () => {
+  const d = deck("g", 10, { audience: "kids" });
+  it("a two- or three-star round earns a ticket; a ticket buys one game", () => {
+    expect([1, 2, 3].map(ticketsFor)).toEqual([0, 1, 1]);
+    let s = defaultState();
+    expect(tickets(s)).toBe(0);
+    expect(spendTicket(s)).toBe(s);
+    s = addTickets(addTickets(s, 1), 1);
+    expect(tickets(s)).toBe(2);
+    // Answers and finished games keep the tickets.
+    s = finishGame(applyKidsAnswer(spendTicket(s), "g-0", true));
+    expect([tickets(s), s.kids.stars]).toEqual([1, 3]);
+  });
+  it("keeps tickets when a save is loaded again", () => {
+    const h = migrateHousehold({ schema: 2, decks: [], profiles: [{ id: "k", name: "Ola", kind: "kids", kids: { stars: 2, words: {}, tickets: 3 } }], active: "k" });
+    expect(h.profiles[0].kids.tickets).toBe(3);
+  });
+  it("games use known words only, stickers first, each picture once", () => {
+    let s = defaultState();
+    expect(canPlayGames([d], s)).toBe(false);
+    for (const id of ["g-0", "g-1"]) s = applyKidsAnswer(s, id, true);
+    s = applyKidsAnswer(s, "g-2", false);
+    expect(canPlayGames([d], s)).toBe(true);
+    const w = gameWords([d, d], s, 6);
+    expect(w.map((c) => c.id).sort()).toEqual(["g-0", "g-1", "g-2"]);
+    expect(w[2].id).toBe("g-2");
+  });
+  it("a memory board holds a picture and a word for each card", () => {
+    const b = memoryBoard(d.cards.slice(0, 6));
+    expect(b).toHaveLength(12);
+    expect(new Set(b.map((t) => t.key)).size).toBe(12);
+    const [pic, txt] = [b.find((t) => t.card.id === "g-3" && t.face === "pic")!, b.find((t) => t.card.id === "g-3" && t.face === "word")!];
+    expect(isPair(pic, txt)).toBe(true);
+    expect(isPair(pic, pic)).toBe(false);
+    expect([0, 3, 4, 12, 13].map((m) => memoryStars(m, 6))).toEqual([3, 3, 2, 2, 1]);
+  });
+  it("balloons ask each word once, among up to four distinct balloons", () => {
+    const cards = d.cards.slice(0, 6);
+    const waves = balloonWaves(cards);
+    expect(waves.map((w) => w.target.id).sort()).toEqual(cards.map((c) => c.id).sort());
+    for (const w of waves) {
+      expect(w.balloons).toHaveLength(4);
+      expect(new Set(w.balloons.map((c) => c.id)).size).toBe(4);
+      expect(w.balloons).toContain(w.target);
+    }
+    expect(balloonWaves(cards.slice(0, 3))[0].balloons).toHaveLength(3);
+  });
+  it("letters: short words only, shuffled tiles, spaces given", () => {
+    const c = (en: string) => ({ id: en, en, pl: "", emoji: "x" });
+    expect(["cat", "ice cream", "T-shirt", "a", "grandfather", "Mr. Smith"].map((en) => spellable(c(en)))).toEqual([true, true, true, false, false, false]);
+    expect(spellSlots("Ice cream").filter((s) => s.given).map((s) => s.ch)).toEqual([" "]);
+    for (let i = 0; i < 20; i++) {
+      const t = letterTiles("cat");
+      expect(t.map((x) => x.ch).sort().join("")).toBe("act");
+      expect(t.map((x) => x.ch).join("")).not.toBe("cat");
+    }
+    expect(letterTiles("Ice cream").map((x) => x.ch).sort().join("")).toBe("acceeimr");
   });
 });
 

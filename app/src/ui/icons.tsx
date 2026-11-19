@@ -9,6 +9,7 @@ const PATHS = {
   settings: <><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></>,
   speaker: <><path d="M4 9v6h4l5 4V5L8 9H4z" /><path d="M16.5 8.5a5 5 0 0 1 0 7" /><path d="M19 6a8.5 8.5 0 0 1 0 12" /></>,
   close: <path d="M6 6l12 12M18 6L6 18" />,
+  lock: <><rect x="5" y="11" width="14" height="9.5" rx="2.5" /><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3" /></>,
   play: <path d="M7 4.5v15l12-7.5z" fill="currentColor" />,
   map: <><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z" /><path d="M9 4v13.5M15 6.5V20" /></>,
   quiz: <><circle cx="12" cy="12" r="9" /><path d="M9.2 9.3a2.9 2.9 0 0 1 5.6.9c0 1.9-2.8 2.4-2.8 4" /><path d="M12 17.2v.1" /></>,

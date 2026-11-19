@@ -1,14 +1,28 @@
 import { useMemo, useState } from "react";
 import { KidsSwitch } from "./KidsSwitch";
-import { kidsWorlds, type Island, type KidsWorld } from "../core/kids";
-import { bundledBooks, decksFor, useAppState } from "../state/store";
+import { kidsWorlds, roundStars, type Island, type KidsWorld } from "../core/kids";
+import { addTickets, finishGame, spendTicket, tickets, ticketsFor, wordsFor, type MiniGame } from "../core/games";
+import type { Card, Deck } from "../core/types";
+import { bundledBooks, decksFor, getState, update, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
 import { setSfxEnabled } from "../platform/sfx";
+import { canListen } from "../platform/listen";
 import { Game, type RoundResult } from "./Game";
 import { IslandMap } from "./IslandMap";
 import { Album, Reward } from "./Reward";
+import { Speak } from "./Speak";
+import { Balloons, GameEnd, GamePicker, Letters, Memory, Ticket } from "./Games";
 
-type View = { name: "shelf" | "map" | "album" } | { name: "game"; island: Island; round: number; asleep: string[] } | { name: "reward"; island: Island; result: RoundResult; round: number; asleep: string[] };
+/** A round is the tap game or, with `voice`, "Mów z Echo"; "Jeszcze raz" on the reward screen repeats the same kind. */
+type View =
+  | { name: "shelf" | "map" | "album" }
+  | { name: "game"; island: Island; round: number; asleep: string[]; voice?: boolean }
+  | { name: "reward"; island: Island; result: RoundResult; round: number; asleep: string[]; ticket: boolean; voice?: boolean }
+  | { name: "games"; decks: Deck[] }
+  | { name: "mini"; game: MiniGame; words: Card[]; decks: Deck[]; n: number }
+  | { name: "miniEnd"; game: MiniGame; stars: 1 | 2 | 3; decks: Deck[] };
+
+const MINI = { memory: Memory, balloons: Balloons, letters: Letters };
 
 export function Jar({ stars }: { stars: number }) {
   return <span className="jar" aria-label={`Gwiazdki: ${stars}`}><i /><b key={stars}>{stars}</b></span>;
@@ -25,11 +39,41 @@ export function KidsApp() {
   const world: KidsWorld | undefined = worlds.length === 1 ? worlds[0] : worlds.find((w) => w.id === worldId);
   const list = world?.islands ?? [];
   const sleeping = () => list.filter((i) => i.asleep).map((i) => i.id);
+  // "Mów z Echo" needs a parent's consent on the profile and a device that recognises speech.
+  const voice = s.settings.kidsVoice === true && canListen();
 
-  if (view.name === "game")
-    return <Game key={`${view.island.id}-${view.round}`} island={view.island} onExit={() => setView({ name: "map" })} onDone={(result) => setView({ name: "reward", island: view.island, result, round: view.round, asleep: view.asleep })} />;
+  const toMap = () => setView({ name: "map" });
+  // A ticket buys one mini-game with words from the given decks.
+  const play = (game: MiniGame, ds: Deck[]) => {
+    if (tickets(getState()) <= 0) return;
+    update(spendTicket);
+    setView({ name: "mini", game, words: wordsFor(game, ds, getState()), decks: ds, n: Date.now() });
+  };
+
+  if (view.name === "game") {
+    const Round = view.voice ? Speak : Game;
+    return (
+      <Round
+        key={`${view.island.id}-${view.round}`}
+        island={view.island}
+        onExit={toMap}
+        onDone={(result) => {
+          // Both rounds earn mini-game tickets the same way.
+          const earned = ticketsFor(roundStars(result.won.length, result.firstTries.length));
+          update((st) => addTickets(st, earned));
+          setView({ name: "reward", island: view.island, result, round: view.round, asleep: view.asleep, ticket: earned > 0, voice: view.voice });
+        }}
+      />
+    );
+  }
   if (view.name === "reward")
-    return <Reward result={view.result} before={view.island} after={list.find((i) => i.id === view.island.id) ?? view.island} woke={list.find((i) => view.asleep.includes(i.id) && !i.asleep)} stars={s.kids.stars} onAgain={() => setView({ name: "game", island: list.find((i) => i.id === view.island.id) ?? view.island, round: view.round + 1, asleep: sleeping() })} onMap={() => setView({ name: "map" })} />;
+    return <Reward result={view.result} before={view.island} after={list.find((i) => i.id === view.island.id) ?? view.island} woke={list.find((i) => view.asleep.includes(i.id) && !i.asleep)} stars={s.kids.stars} ticket={view.ticket} tickets={tickets(s)} onGames={() => setView({ name: "games", decks: [view.island.deck!] })} onAgain={() => setView({ name: "game", island: list.find((i) => i.id === view.island.id) ?? view.island, round: view.round + 1, asleep: sleeping(), voice: view.voice })} onMap={toMap} />;
+  if (view.name === "games") return <GamePicker decks={view.decks} tickets={tickets(s)} onPlay={(g) => play(g, view.decks)} onBack={toMap} />;
+  if (view.name === "mini") {
+    const Mini = MINI[view.game];
+    return <Mini key={view.n} words={view.words} onExit={toMap} onDone={(stars) => { update(finishGame); setView({ name: "miniEnd", game: view.game, stars, decks: view.decks }); }} />;
+  }
+  if (view.name === "miniEnd") return <GameEnd game={view.game} stars={view.stars} tickets={tickets(s)} onAgain={() => setView({ name: "games", decks: view.decks })} onMap={toMap} />;
   if (view.name === "album") return <Album islands={worlds.flatMap((w) => w.islands)} onBack={() => setView({ name: "map" })} />;
 
   const header = (title: string, back?: () => void) => (
@@ -38,6 +82,7 @@ export function KidsApp() {
       {back && <button className="kround" onClick={back} aria-label="Wróć do książek"><Icon name="back" size={32} /></button>}
       <h1>{title}</h1>
       <span className="sp" />
+      <Ticket n={tickets(s)} onClick={() => setView({ name: "games", decks: world ? world.islands.flatMap((i) => (i.deck ? [i.deck] : [])) : decks })} />
       <button className="kround" onClick={() => setView({ name: "album" })} aria-label="Album z naklejkami"><Icon name="album" size={32} /></button>
       <Jar stars={s.kids.stars} />
     </header>
@@ -62,7 +107,12 @@ export function KidsApp() {
           <small>Rodzic może wczytać talię dla dzieci w Echo: Talie, Wczytaj z pliku.</small>
         </div>
       ) : (
-        <IslandMap key={world?.id} islands={list} onPlay={(island) => setView({ name: "game", island, round: 0, asleep: sleeping() })} />
+        <IslandMap
+          key={world?.id}
+          islands={list}
+          onPlay={(island) => setView({ name: "game", island, round: 0, asleep: sleeping() })}
+          onSpeak={voice ? (island) => setView({ name: "game", island, round: 0, asleep: sleeping(), voice: true }) : undefined}
+        />
       )}
     </div>
   );

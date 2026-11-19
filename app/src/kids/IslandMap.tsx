@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import type { Island } from "../core/kids";
+import { wakeNeed, type Island } from "../core/kids";
+import { plural } from "../adult/Home";
 import { Bat } from "../ui/Bat";
+import { Icon } from "../ui/icons";
 
 const COLORS = ["var(--topic-animals)", "var(--topic-food)", "var(--topic-toys)", "var(--topic-school)"];
 
@@ -11,7 +13,18 @@ function place(i: number, n: number): { x: number; y: number } {
   return { x, y };
 }
 
-export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: Island) => void }) {
+/** What the footer says about the selected island, so the child knows what to do next. */
+function hint(list: Island[], i: number): string {
+  const isl = list[i];
+  if (!isl.deck) return "Tu jeszcze nie ma słówek. Wkrótce!";
+  const need = wakeNeed(list, i);
+  if (need) return `Wyspa śpi. Zbierz jeszcze ${need.stickers} ${plural(need.stickers, "naklejkę", "naklejki", "naklejek")} na wyspie ${need.from.title}, żeby ją obudzić`;
+  if (isl.asleep) return "Wyspa śpi. Zapal lampkę na poprzedniej wyspie, żeby ją obudzić";
+  return `${isl.stickers} z ${isl.total} naklejek`;
+}
+
+/** `onSpeak` (the voice round) is offered only when a parent turned the microphone on and the device can listen. */
+export function IslandMap({ islands, onPlay, onSpeak }: { islands: Island[]; onPlay: (i: Island) => void; onSpeak?: (i: Island) => void }) {
   const open = (i: Island) => !!i.deck && !i.asleep;
   // Start at the newest awake island that is not finished yet.
   let firstOpen = -1;
@@ -40,10 +53,10 @@ export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: 
               key={isl.id}
               className={`isl${open(isl) ? "" : " lock"}${isl.lamps >= 3 ? " done" : ""}${i === sel ? " cur" : ""}`}
               style={{ left: `${pos[i].x}%`, top: `${pos[i].y}%`, background: COLORS[i % COLORS.length] }}
-              onClick={() => (isl.deck ? setSel(i) : undefined)}
+              onClick={() => setSel(i)}
               aria-disabled={!open(isl)}
               aria-pressed={i === sel}
-              aria-label={!isl.deck ? `Wyspa ${isl.title}, wkrótce` : isl.asleep ? `Wyspa ${isl.title}, śpi` : `Wyspa ${isl.title}, naklejki: ${isl.stickers} z ${isl.total}`}
+              aria-label={!isl.deck ? `Wyspa ${isl.title}, jeszcze bez słówek` : isl.asleep ? `Wyspa ${isl.title}, śpi` : `Wyspa ${isl.title}, naklejki: ${isl.stickers} z ${isl.total}`}
             >
               <span className="isl-e">{!isl.deck ? "🔒" : isl.asleep ? "💤" : isl.emoji}</span>
               {isl.lamps >= 3 && <span className="isl-flag" aria-hidden="true">🚩</span>}
@@ -54,12 +67,15 @@ export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: 
           <span className="mapbat" style={{ left: `${pos[sel].x}%`, top: `${pos[sel].y}%` }}><Bat /></span>
         </div>
       </div>
-      <div className="kfoot">
+      <div className={`kfoot${onSpeak ? " kfoot-two" : ""}`}>
         <div className="kfoot-info">
           <b>{cur.title}</b>
-          <small>{!cur.deck ? "Ta wyspa jeszcze śpi" : cur.asleep ? "Zapal lampkę na poprzedniej wyspie, żeby ją obudzić" : `${cur.stickers} z ${cur.total} naklejek`}</small>
+          <small>{hint(islands, sel)}</small>
         </div>
-        <button className="kbtn" disabled={!open(cur)} onClick={() => onPlay(cur)}>Graj! ▶</button>
+        <div className="kfoot-play">
+          {onSpeak && <button className="kbtn kbtn-speak" disabled={!open(cur)} onClick={() => onSpeak(cur)} aria-label="Mów z Echo"><Icon name="mic" size={32} /> Mów</button>}
+          <button className="kbtn" disabled={!open(cur)} onClick={() => onPlay(cur)}>Graj! ▶</button>
+        </div>
       </div>
     </>
   );

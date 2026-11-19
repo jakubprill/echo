@@ -1,7 +1,7 @@
 // Profiles: several adults and several children learn on one device.
 // Decks are shared by the whole household; progress, daily log, stars and settings belong to a profile.
 // Screens keep working on AppState, which is the active profile seen together with the shared decks.
-import { defaultState, type AppState, type Audience, type CardProgress, type DayLog, type KidsWord, type Settings } from "./types";
+import { defaultState, type AppState, type Audience, type CardProgress, type DayLog, type KidsState, type Settings } from "./types";
 import type { Deck } from "./types";
 
 export type Profile = {
@@ -11,7 +11,7 @@ export type Profile = {
   avatar: string;
   progress: Record<string, CardProgress>;
   log: Record<string, DayLog>;
-  kids: { stars: number; words: Record<string, KidsWord> };
+  kids: KidsState;
   settings: Settings;
 };
 
@@ -49,7 +49,7 @@ export function addProfile(h: Household, name: string, kind: Audience, avatar: s
 }
 
 /** Options a parent sets on a child's profile in the profile form. */
-export type KidsOptions = Pick<Settings, "sounds" | "kidsOpenAll">;
+export type KidsOptions = Pick<Settings, "sounds" | "kidsOpenAll" | "kidsVoice">;
 
 export function editProfile(h: Household, id: string, patch: { name?: string; avatar?: string; kidsOptions?: KidsOptions }): Household {
   const name = patch.name === undefined ? undefined : cleanName(patch.name);
@@ -111,7 +111,7 @@ function migrateProfile(raw: Partial<Profile>, i: number): Profile | null {
     avatar: typeof raw.avatar === "string" && raw.avatar ? raw.avatar : AVATARS[i % AVATARS.length],
     progress: obj(raw.progress, {}),
     log: obj(raw.log, {}),
-    kids: { stars: raw.kids?.stars ?? 0, words: obj(raw.kids?.words, {}) },
+    kids: { stars: raw.kids?.stars ?? 0, words: obj(raw.kids?.words, {}), ...(typeof raw.kids?.tickets === "number" ? { tickets: raw.kids.tickets } : {}) },
     settings: { ...d.settings, ...obj(raw.settings, {}), line: kind },
   };
 }

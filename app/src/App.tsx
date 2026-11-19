@@ -9,6 +9,7 @@ import { decksFor, updateHousehold, useAppState, useHousehold } from "./state/st
 import { Icon } from "./ui/icons";
 import { setDarkSystemBars } from "./platform/insets";
 import { UpdateBanner } from "./ui/UpdateBanner";
+import { canListen, listen, stopListening, type ListenError } from "./platform/listen";
 
 /** The "system" theme follows the host (Claude artifact) or the operating system. */
 function useSystemDark(): boolean {
@@ -114,6 +115,37 @@ function Chooser() {
   );
 }
 
+const MIC_PROBLEMS: Record<ListenError, string> = {
+  permission: "Brak zgody na mikrofon. Zezwól na niego w ustawieniach urządzenia lub przeglądarki.",
+  unavailable: "To urządzenie nie rozpoznaje mowy.",
+  network: "Rozpoznawanie mowy potrzebuje internetu.",
+  language: "Brak rozpoznawania angielskiego. Dodaj język angielski w ustawieniach rozpoznawania mowy.",
+  busy: "Mikrofon jest zajęty. Spróbuj za chwilę.",
+  other: "Nie udało się posłuchać. Spróbuj jeszcze raz.",
+};
+
+/** Explains where the child's voice goes and lets the parent check the microphone. */
+function MicNote({ on, accent }: { on: boolean; accent: string }) {
+  const [test, setTest] = useState<string>("");
+  useEffect(() => () => stopListening(), []);
+  if (!canListen()) return <p className="hint">Na tym urządzeniu Echo jeszcze nie rozpoznaje mowy (na razie działa na Androidzie i w Chrome lub Edge).</p>;
+  if (!on) return null;
+  const check = async () => {
+    setTest("Powiedz coś po angielsku, np. „hello”…");
+    const r = await listen(accent);
+    setTest(r.kind === "heard" ? `Echo usłyszało: „${r.texts[0]}”. Mikrofon działa.` : r.kind === "silence" ? "Nic nie słychać. Spróbuj jeszcze raz, bliżej mikrofonu." : r.kind === "error" ? MIC_PROBLEMS[r.reason] : "");
+  };
+  return (
+    <div className="field mic-note">
+      <p className="hint">Głos dziecka rozpoznaje system (na Androidzie zwykle Google, przez internet). Echo nie nagrywa i nie zapisuje głosu.</p>
+      <div className="row">
+        <button type="button" className="btn btn-quiet" onClick={() => void check()}><Icon name="mic" /> Sprawdź mikrofon</button>
+        {test && <span className="hint" role="status">{test}</span>}
+      </div>
+    </div>
+  );
+}
+
 function ProfileForm({ profile, first, onClose }: { profile?: Profile; first: boolean; onClose: () => void }) {
   const [name, setName] = useState(profile?.name ?? "");
   const [kind, setKind] = useState<Audience>(profile?.kind ?? "adults");
@@ -121,12 +153,13 @@ function ProfileForm({ profile, first, onClose }: { profile?: Profile; first: bo
   const [confirm, setConfirm] = useState(false);
   const [sounds, setSounds] = useState(profile?.settings.sounds !== false);
   const [openAll, setOpenAll] = useState(profile?.settings.kidsOpenAll === true);
+  const [kidsVoice, setKidsVoice] = useState(profile?.settings.kidsVoice === true);
   const ok = cleanName(name) !== "";
 
   const save = () => {
     if (!ok) return;
     updateHousehold((h) => {
-      if (profile) return editProfile(h, profile.id, { name, avatar, ...(profile.kind === "kids" ? { kidsOptions: { sounds, kidsOpenAll: openAll } } : {}) });
+      if (profile) return editProfile(h, profile.id, { name, avatar, ...(profile.kind === "kids" ? { kidsOptions: { sounds, kidsOpenAll: openAll, kidsVoice } } : {}) });
       const next = addProfile(h, name, kind, avatar);
       // The very first profile starts learning straight away.
       return first ? selectProfile(next, next.profiles[next.profiles.length - 1].id) : next;
@@ -162,6 +195,10 @@ function ProfileForm({ profile, first, onClose }: { profile?: Profile; first: bo
             <label className="field field-check" htmlFor="profile-open-all"><span>Wszystkie wyspy otwarte od razu</span>
               <input id="profile-open-all" type="checkbox" checked={openAll} onChange={(e) => setOpenAll(e.target.checked)} />
             </label>
+            <label className="field field-check" htmlFor="profile-voice"><span>Mów z Echo: dziecko mówi słówka do mikrofonu</span>
+              <input id="profile-voice" type="checkbox" checked={kidsVoice} disabled={!canListen()} onChange={(e) => setKidsVoice(e.target.checked)} />
+            </label>
+            <MicNote on={kidsVoice} accent={profile.settings.accent} />
           </>
         )}
         <div className="row">

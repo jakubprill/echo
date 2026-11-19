@@ -17,7 +17,7 @@ function wordsLabel(n: number): string {
 
 const TITLES = ["", "Dobra próba!", "Brawo!", "Super runda!"];
 
-export function Reward({ result, before, after, woke, stars, onAgain, onMap }: { result: RoundResult; before: Island; after: Island; woke?: Island; stars: number; onAgain: () => void; onMap: () => void }) {
+export function Reward({ result, before, after, woke, stars, ticket, tickets, onGames, onAgain, onMap }: { result: RoundResult; before: Island; after: Island; woke?: Island; stars: number; ticket: boolean; tickets: number; onGames: () => void; onAgain: () => void; onMap: () => void }) {
   const s = useAppState();
   const { won, firstTries } = result;
   const rating = roundStars(won.length, firstTries.length);
@@ -59,6 +59,12 @@ export function Reward({ result, before, after, woke, stars, onAgain, onMap }: {
               <b>{conquered ? `${after.title}: wszystkie lampki!` : "Nowa lampka na wyspie!"}</b>
             </div>
           )}
+          {ticket && (
+            <div className="rticket" role="status">
+              <span aria-hidden="true">🎟️</span>
+              <div><b>Bilet na minigrę!</b><small>Pary, Balony albo Literki</small></div>
+            </div>
+          )}
           {woke && (
             <div className="rwoke" role="status">
               <span>{woke.emoji}</span>
@@ -76,6 +82,7 @@ export function Reward({ result, before, after, woke, stars, onAgain, onMap }: {
       </div>
       <div className="kfoot kfoot-2">
         <button className="kbtn kbtn-quiet" onClick={onMap}><Icon name="map" size={32} /> Mapa</button>
+        {tickets > 0 && <button className="kbtn kbtn-game" onClick={onGames}>Minigra 🎟️</button>}
         <button className="kbtn" onClick={onAgain}>Jeszcze raz ▶</button>
       </div>
     </div>

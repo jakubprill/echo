@@ -20,7 +20,7 @@
     {
       "id": "toys",
       "title": "Toys",
-      "status": "todo"
+      "deck": "toys.json"
     }
   ]
 }

@@ -174,6 +174,106 @@
 .kworld .lamps { position: static; align-items: center; height: auto; flex-wrap: wrap; justify-content: center; }
 
 /* word pictures (WordPic): built-in pictures sit on a white tile so they read well on the night sky */
-.wordpic { display: inline-grid; place-items: center; line-height: 1; vertical-align: middle; }
+.wordpic { display: inline-grid; place-items: center; line-height: 1.1; vertical-align: middle; white-space: nowrap; }
 .wordpic img { width: 1.15em; height: 1.15em; object-fit: contain; border-radius: 0.14em; background: #fff; padding: 0.06em; box-sizing: border-box; -webkit-user-drag: none; }
 .wordpic .wp-multi { font-size: 0.6em; }
+/* mini-games: tickets, picker, end screen */
+.kreward-main { display: flex; flex-direction: column; }
+.kreward-main > .rlamp, .kreward-main > .rwoke, .kreward-main > .rticket { align-self: center; }
+.kreward-main > .stickers { flex: 1 1 0; }
+.kticket { display: flex; align-items: center; gap: 6px; flex: none; border: 0; border-radius: 99px; padding: 6px 16px 6px 10px; min-height: 56px; background: rgba(255, 255, 255, 0.1); color: var(--fg); font: 800 clamp(22px, 3.8vmin, 30px) var(--f-kd); font-variant-numeric: tabular-nums; }
+.kticket span { font-size: 1.2em; line-height: 1; }
+.kticket.has { background: var(--card); color: var(--card-ink); box-shadow: 0 5px 0 var(--card-edge), 0 0 18px rgba(251, 113, 133, 0.6); }
+button.kticket.has { animation: wiggle 2.6s ease-in-out infinite; }
+button.kticket:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3); }
+.kticket b { display: inline-block; animation: bump 0.45s cubic-bezier(0.3, 1.8, 0.5, 1); }
+@keyframes wiggle { 0%, 80%, 100% { transform: rotate(0); } 85% { transform: rotate(-8deg); } 90% { transform: rotate(8deg); } 95% { transform: rotate(-4deg); } }
+.rticket { display: flex; align-items: center; gap: 12px; padding: 8px 18px 8px 10px; border-radius: 20px; background: var(--again); color: #fff; animation: land 0.6s 1.4s backwards cubic-bezier(0.3, 1.5, 0.5, 1); max-width: 100%; }
+.rticket > span { font-size: clamp(32px, 6vmin, 48px); line-height: 1; }
+.rticket b { display: block; font: 800 clamp(16px, 3vmin, 22px)/1.2 var(--f-kd); }
+.rticket small { font-size: clamp(14px, 2.4vmin, 18px); opacity: 0.9; }
+.kbtn-game { background: var(--again); color: #fff; box-shadow: 0 8px 0 #be3a55; }
+.kbtn-game:active { box-shadow: 0 2px 0 #be3a55; }
+
+.kgames { grid-row: 2 / 4; min-height: 0; overflow-y: auto; display: grid; align-content: center; gap: clamp(12px, 3vmin, 28px); padding: 0 max(clamp(12px, 4vmin, 48px), var(--safe-right)) calc(clamp(16px, 4vmin, 40px) + var(--safe-bottom)) max(clamp(12px, 4vmin, 48px), var(--safe-left)); }
+.kgames-note { text-align: center; font: 800 clamp(20px, 3.6vmin, 28px)/1.25 var(--f-kd); text-wrap: balance; }
+.kgames-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, clamp(200px, 30vmin, 300px)), 1fr)); gap: clamp(14px, 3vmin, 32px); }
+.kgame-tile { position: relative; display: grid; justify-items: center; align-content: center; gap: 8px; padding: clamp(20px, 4vmin, 40px) 16px; border: 0; border-radius: var(--r-kids); background: var(--card); color: var(--card-ink); box-shadow: 0 10px 0 var(--card-edge); text-align: center; min-height: clamp(150px, 34vmin, 300px); }
+.kgame-tile:active { transform: translateY(6px); box-shadow: 0 4px 0 var(--card-edge); }
+.kgame-tile:disabled { filter: grayscale(0.85) brightness(0.6); }
+.kgame-e { font-size: clamp(56px, 13vmin, 110px); line-height: 1; }
+.kgame-tile b { font: 800 clamp(24px, 4.6vmin, 38px)/1.1 var(--f-kd); }
+.kgame-tile small { font: 700 clamp(14px, 2.4vmin, 18px)/1.25 var(--f-kb); color: var(--card-muted); max-width: 22ch; }
+.kgame-cost { position: absolute; right: 14px; top: 12px; font: 800 18px var(--f-kd); background: rgba(43, 35, 80, 0.1); color: var(--card-ink); border-radius: 99px; padding: 4px 10px; }
+.g-memory { background: #fff8e7; }
+.g-balloons { background: #e8f1ff; }
+.g-letters { background: #eefbf3; }
+@media (max-aspect-ratio: 1/1) {
+  .kgames { align-content: start; }
+  .kgame-tile { grid-template-columns: auto 1fr; grid-template-rows: auto auto; justify-items: start; text-align: left; column-gap: 18px; min-height: 0; padding: 18px 20px; }
+  .kgame-e { grid-row: 1 / 3; font-size: 64px; }
+  .kgames .kticket { display: none; }
+}
+
+/* Memory */
+.mboard { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr)); gap: clamp(8px, 2vmin, 20px); min-height: 0; padding-bottom: 10px; }
+.mtile { border: 0; padding: 0; background: none; perspective: 900px; min-height: 0; min-width: 0; }
+.mtile-in { position: relative; display: block; width: 100%; height: 100%; transition: transform 0.35s; transform-style: preserve-3d; }
+.mtile.up .mtile-in { transform: rotateY(180deg); }
+.mface { position: absolute; inset: 0; display: grid; place-items: center; border-radius: clamp(16px, 3vmin, 28px); backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
+.mcover { background: radial-gradient(circle at 30% 30%, var(--accent) 0 12%, transparent 13%), radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.18) 0 6%, transparent 7%), #4b43b8; box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.25), 0 0 0 3px rgba(255, 255, 255, 0.15); }
+.mshow { transform: rotateY(180deg); background: var(--card); color: var(--card-ink); box-shadow: inset 0 -8px 0 var(--card-edge); padding: 6px; }
+.mshow .wordpic { font-size: clamp(36px, 11vmin, 92px); }
+.mword { font: 700 clamp(18px, 5vmin, 40px)/1.05 var(--f-kb); text-align: center; overflow-wrap: anywhere; }
+.mword.long { font-size: clamp(15px, 3.6vmin, 30px); }
+.mtile.done .mshow { background: var(--good-soft); box-shadow: inset 0 0 0 5px var(--good); animation: pop 0.5s; }
+.mtile.no .mshow { animation: mshake 0.4s; box-shadow: inset 0 0 0 5px var(--again); }
+.mtile:active:not(.up) .mtile-in { transform: scale(0.94); }
+@keyframes mshake { 25% { transform: rotateY(180deg) translateX(-8px); } 75% { transform: rotateY(180deg) translateX(8px); } }
+@media (max-aspect-ratio: 1/1) {
+  .mboard { grid-template-columns: repeat(var(--pcols), minmax(0, 1fr)); grid-template-rows: repeat(var(--prows), minmax(0, 1fr)); }
+}
+
+/* Balloons */
+.bfield { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); align-items: end; gap: clamp(8px, 2vmin, 24px); min-height: 0; padding-bottom: 4%; }
+.balloon { --i: 0; position: relative; justify-self: center; width: min(100%, 30vmin); aspect-ratio: 5 / 7; border: 0; padding: 0; background: none; animation: rise 1s calc(var(--i) * 0.15s) backwards cubic-bezier(0.2, 0.8, 0.3, 1); }
+.balloon-b { position: absolute; inset: 0 0 22% 0; border-radius: 50% 50% 48% 48% / 55% 55% 45% 45%; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55) 0 10%, transparent 11%), var(--c); box-shadow: inset -10px -14px 0 rgba(0, 0, 0, 0.14); display: grid; place-items: center; animation: float 2.8s calc(var(--i) * -0.7s) ease-in-out infinite; }
+.balloon-b .wordpic { font-size: clamp(34px, 9vmin, 80px); background: rgba(255, 255, 255, 0.85); border-radius: 50%; padding: 0.12em; width: 1.4em; height: 1.4em; display: grid; place-items: center; }
+.balloon-s { position: absolute; left: 50%; top: 77%; width: 3px; height: 23%; background: rgba(255, 255, 255, 0.55); animation: float 2.8s calc(var(--i) * -0.7s) ease-in-out infinite; }
+.balloon.no .balloon-b { animation: shake2 0.4s; filter: saturate(0.4) brightness(0.8); }
+.balloon.show .balloon-b { box-shadow: 0 0 0 6px var(--accent), 0 0 30px var(--accent); }
+.balloon.pop .balloon-b, .balloon.pop .balloon-s { animation: burstb 0.25s forwards; }
+.burst { position: absolute; left: 50%; top: 38%; }
+.burst i { position: absolute; width: 14px; height: 14px; margin: -7px; border-radius: 50%; background: var(--c); animation: shard 0.6s forwards ease-out; transform: rotate(calc(var(--k) * 45deg)); }
+@keyframes rise { from { transform: translateY(120%); } }
+@keyframes float { 50% { transform: translateY(-6%); } }
+@keyframes shake2 { 25% { transform: translateX(-10px) rotate(-6deg); } 75% { transform: translateX(10px) rotate(6deg); } }
+@keyframes burstb { to { transform: scale(1.5); opacity: 0; } }
+@keyframes shard { to { transform: rotate(calc(var(--k) * 45deg)) translateY(-90px) scale(0.4); opacity: 0; } }
+.ksky { background: radial-gradient(ellipse at 70% 0%, #3d58a8, var(--bg) 70%); }
+
+/* Letters */
+.lgame { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; justify-items: center; gap: clamp(10px, 2.6vmin, 24px); min-height: 0; padding-bottom: 10px; }
+.lpic { border: 0; border-radius: 32px; background: var(--card); box-shadow: 0 10px 0 var(--card-edge); aspect-ratio: 1; height: 100%; max-height: 34vmin; min-height: 0; display: grid; place-items: center; }
+.lpic .wordpic { font-size: clamp(56px, 18vmin, 140px); }
+.lpic.ok { background: var(--good-soft); box-shadow: 0 10px 0 var(--good), 0 0 0 6px var(--good); animation: pop 0.5s; }
+.lslots { display: flex; gap: clamp(4px, 1.2vmin, 10px); max-width: 100%; }
+.lslot { width: min(clamp(40px, 9vmin, 76px), calc((100vw - 48px) / var(--len) - 8px)); aspect-ratio: 4 / 5; border-radius: 14px; border: 3px dashed rgba(255, 255, 255, 0.35); display: grid; place-items: center; font: 800 clamp(26px, 6.5vmin, 54px)/1 var(--f-kb); text-transform: lowercase; }
+.lslot.on { border: 0; background: var(--accent); color: var(--accent-ink); animation: pop 0.35s; }
+.lslot.cur { border-color: var(--accent); border-style: solid; }
+.lslot.given { border: 0; width: clamp(12px, 3vmin, 28px); }
+.ltiles { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(8px, 2vmin, 16px); }
+.ltile { width: clamp(60px, 11vmin, 92px); aspect-ratio: 1; border: 0; border-radius: 20px; background: var(--card); color: var(--card-ink); box-shadow: 0 7px 0 var(--card-edge); font: 800 clamp(30px, 6.5vmin, 52px)/1 var(--f-kb); }
+.ltile:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--card-edge); }
+.ltile.used { visibility: hidden; }
+.ltile.no { animation: shake2 0.4s; background: var(--again-soft); color: #fff; }
+.ltile.show { box-shadow: 0 7px 0 var(--card-edge), 0 0 0 5px var(--accent), 0 0 24px var(--accent); }
+
+/* Portrait (phone): balloons in two rows, letters game stacked. */
+@media (max-aspect-ratio: 1/1) {
+  .bfield { grid-template-columns: 1fr 1fr; align-items: center; align-content: space-evenly; padding-bottom: 0; }
+  .balloon { width: min(100%, 40vw, 26vh); }
+  .lgame { grid-template-rows: auto auto auto; align-content: space-evenly; }
+  .lpic { height: auto; width: min(56vw, 28vh); max-height: none; }
+  .lpic .wordpic { font-size: min(30vw, 15vh); }
+}

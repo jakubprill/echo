@@ -72,7 +72,7 @@ export function buildRound(deck: Deck, s: AppState, rnd: () => number = Math.ran
 export function applyKidsAnswer(s: AppState, cardId: string, firstTry: boolean): AppState {
   const w = word(s, cardId);
   const next: KidsWord = firstTry ? { level: Math.min(MAX_LEVEL, w.level + 1), sticker: true, seen: w.seen + 1 } : { level: Math.max(0, w.level - 1), sticker: w.sticker, seen: w.seen + 1 };
-  return { ...s, kids: { stars: s.kids.stars + (firstTry ? 1 : 0), words: { ...s.kids.words, [cardId]: next } } };
+  return { ...s, kids: { ...s.kids, stars: s.kids.stars + (firstTry ? 1 : 0), words: { ...s.kids.words, [cardId]: next } } };
 }
 
 /** Sticker finish shown in the album: 0 none, 1 bronze, 2 silver, 3 gold (the word's level, at least bronze once earned). */
@@ -117,4 +117,15 @@ export function kidsWorlds(decks: Deck[], books: Book[], s: AppState, openAll = 
   const out = g.folders.map((f) => world(f.id, f.title, f.decks));
   if (g.loose.length) out.push(world(LOOSE_WORLD, "Inne wyspy", g.loose));
   return out;
+}
+
+/** What wakes a sleeping island: more stickers on the nearest earlier awake island, enough to light its first lamp. */
+export function wakeNeed(list: Island[], index: number): { from: Island; stickers: number } | null {
+  if (!list[index]?.asleep) return null;
+  for (let i = index - 1; i >= 0; i--) {
+    const from = list[i];
+    if (!from.deck || from.asleep) continue;
+    return { from, stickers: Math.max(1, Math.ceil(from.total / 3) - from.stickers) };
+  }
+  return null;
 }

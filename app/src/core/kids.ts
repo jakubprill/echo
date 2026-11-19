@@ -115,3 +115,14 @@ export function kidsWorlds(decks: Deck[], books: Book[], s: AppState, openAll = 
   if (g.loose.length) out.push(world(LOOSE_WORLD, "Inne wyspy", g.loose));
   return out;
 }
+
+/** What wakes a sleeping island: more stickers on the nearest earlier awake island, enough to light its first lamp. */
+export function wakeNeed(list: Island[], index: number): { from: Island; stickers: number } | null {
+  if (!list[index]?.asleep) return null;
+  for (let i = index - 1; i >= 0; i--) {
+    const from = list[i];
+    if (!from.deck || from.asleep) continue;
+    return { from, stickers: Math.max(1, Math.ceil(from.total / 3) - from.stickers) };
+  }
+  return null;
+}

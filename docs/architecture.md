@@ -91,7 +91,7 @@ Styles: `tokens.css` carries over the tokens from the design system (same names,
 
 ## Content
 
-- Deck: an `echo-deck` file (v1, or v2 with the fields `emoji`, `exPl`, `topics`, `unit`, `book`, `audience`). Unknown fields are ignored, so newer decks work in an older app.
+- Deck: an `echo-deck` file (v1, or v2 with the fields `emoji`, `pic`, `exPl`, `topics`, `unit`, `book`, `audience`). Unknown fields are ignored, so newer decks work in an older app.
 - Folders: decks are grouped in the deck lists (adults) and on a shelf of worlds (Kids, only when there is more than one). A deck's optional `folder` field names its folder; without it, a deck with a `book` goes into the book's folder (title from the `echo-book` file, else the deck title before " – ", else the book id). Other decks stay loose. Inside a folder the folder name is dropped from deck titles. A folder can be studied, quizzed or practised by voice as a whole. Grouping is computed from deck fields only, so card progress is unaffected (`core/folders.ts`).
 - Book: an `echo-book` file with a list of units. The Kids line draws its map from it: each unit is an island, and units without a deck are shown as locked.
 - `audience: "kids"` routes a deck to Echo Kids; everything else goes to Echo.
@@ -123,7 +123,7 @@ The `.github/workflows/build.yml` workflow runs only the tests and the web build
 7. **Swiping a flashcard: right for "Dobrze" (Good), left for "Nie wiem" (Again).** "Trudne" (Hard) and "Łatwe" (Easy) are buttons only.
 8. **Quiz as the fifth tab instead of "Import".** Loading decks lives in the Decks tab. The quiz icon and a few others (back, bin, magnifier, album) were drawn in the style of the set and are awaiting approval in the design system.
 9. **Kids game: Echo speaks the word by itself**, and tapping the bat repeats it. The mockup required a tap before the first playback. The word is also written under the bat, so the game works without sound.
-10. **Kids pictures are emoji from the deck.** Good enough for the alpha, but limited: country flags do not render on Windows, and some words share a picture (son, brother, grandson). The game never shows two identical pictures in one question. Target: an `img` field and custom illustrations.
+10. **Kids pictures come from a built-in picture library.** A card names a picture in `pic` (e.g. `arasaac-2246`); `app/src/kids/pics/` holds the files and `WordPic` shows them, falling back to the card's `emoji`. Pictures are ARASAAC pictograms (CC BY-NC-SA 4.0, excluded from the MIT license, credited in Settings); Echo stays free, so the non-commercial condition fits. Keeping pictures in the app rather than in decks keeps the saved state and the import file small; the cost is that a deck needing new pictures needs an app release.
 11. **Fonts from Google Fonts.** Offline, the app falls back to system fonts. Font files will be bundled before release.
 12. **The original `index.html` stays in the repository** until the alpha replaces it. The `spike-tauri` prototype is not carried over: its Tauri configuration and platform layer went into `app/`.
 

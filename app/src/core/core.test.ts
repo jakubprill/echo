@@ -4,7 +4,7 @@ import { review } from "./sm2";
 import { applyGrade, buildQueue, counts, markDueNow, requeue } from "./session";
 import { DeckError, exportBackup, mergeDecks, parseBackup, parseDeckFile } from "./deck";
 import { buildQuiz, checkTyped } from "./quiz";
-import { applyKidsAnswer, bestStreak, buildRound, islands, kidsWorlds, LOOSE_WORLD, roundStars, stickerTier } from "./kids";
+import { applyKidsAnswer, bestStreak, buildRound, islands, kidsWorlds, LOOSE_WORLD, roundStars, stickerTier, wakeNeed } from "./kids";
 import { groupDecks, pickDecks, shortTitle } from "./folders";
 import { streak } from "./stats";
 import { backupPlan, isoDay } from "./backups";
@@ -249,7 +249,14 @@ describe("kids line", () => {
     let s = defaultState();
     expect(islands([d, d2, d3], [book], s).map((i) => i.asleep)).toEqual([false, true, true]);
     expect(islands([d, d2, d3], [book], s, true).some((i) => i.asleep)).toBe(false);
-    for (const c of d.cards.slice(0, 3)) s = applyKidsAnswer(s, c.id, true);
+    // Both sleeping islands point the child at the first island: 3 of its 9 stickers light a lamp.
+    const sleeping = islands([d, d2, d3], [book], s);
+    expect(wakeNeed(sleeping, 1)).toMatchObject({ from: { id: "b/u1" }, stickers: 3 });
+    expect(wakeNeed(sleeping, 2)).toMatchObject({ from: { id: "b/u1" }, stickers: 3 });
+    expect(wakeNeed(sleeping, 0)).toBeNull();
+    for (const c of d.cards.slice(0, 2)) s = applyKidsAnswer(s, c.id, true);
+    expect(wakeNeed(islands([d, d2, d3], [book], s), 1)?.stickers).toBe(1);
+    s = applyKidsAnswer(s, d.cards[2].id, true);
     expect(islands([d, d2, d3], [book], s).map((i) => i.asleep)).toEqual([false, false, true]);
     // An island that already has stickers stays awake.
     s = applyKidsAnswer(defaultState(), d3.cards[0].id, true);

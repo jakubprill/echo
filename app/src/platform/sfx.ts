@@ -77,6 +77,11 @@ export const sfx = {
   fanfare() {
     [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.12, i === 3 ? 0.6 : 0.18, "square", 0.07));
   },
+  /** The microphone opens: a short rising "your turn". */
+  mic() {
+    tone(587, 0, 0.09, "sine", 0.1);
+    tone(880, 0.08, 0.14, "sine", 0.1);
+  },
   /** A memory card turning over. */
   flip() {
     tone(1100, 0, 0.05, "sine", 0.08);

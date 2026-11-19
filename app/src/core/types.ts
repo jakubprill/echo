@@ -78,6 +78,8 @@ export type Settings = {
   sounds?: boolean;
   /** Kids map: all islands open at once instead of waking one after another. */
   kidsOpenAll?: boolean;
+  /** Kids: "Mów z Echo", the round where the child speaks; a parent turns the microphone on. Missing means off. */
+  kidsVoice?: boolean;
   /** Voice mode: the choices of the last session. */
   voice?: VoicePrefs;
 };

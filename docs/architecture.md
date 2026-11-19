@@ -49,6 +49,7 @@ Plain TypeScript, no DOM. Every function takes a state and returns a new state, 
 | `backups.ts` | which daily backup to write and which old ones to remove |
 | `stats.ts` | day streak, charts, breakdown of words by stage |
 | `voice.ts` | voice mode: choosing words, lenient judging of a spoken answer, voice commands, queue and progress after an answer |
+| `kidsVoice.ts` | kids voice round: judging by sound, the ladder of help (say, hint, repeat), hints and questions |
 
 This is the part that survives any change of UI technology. If we ever decide on Flutter, this directory is the specification to port 1:1, tests included.
 
@@ -88,6 +89,17 @@ Styles: `tokens.css` carries over the tokens from the design system (same names,
 - **Silence**: first more time to think, then the word again, then the session pauses (and says so), so nothing is failed while the person is away. Leaving the app also pauses it. The screen stays on during a session.
 - **Progress**: a new or due word is graded "Dobrze" or "Nie wiem", like the buttons. A word that is not due is not moved forward by a right answer, but a wrong one becomes due, as in the quiz. "Uznaj, było dobrze" takes back a miss the recogniser got wrong.
 - **Without a recogniser** (Windows, macOS for now) the mode reads only: word, four seconds to think, translation. Progress does not change.
+
+### Kids voice round ("Mów z Echo")
+
+Echo Kids has its own voice round, started from the island with the "Mów" button next to "Graj!". The child speaks English: there is no translating into Polish, because the tap game already trains listening.
+
+- **Round**: the same six words as a tap round (`buildRound`). New words come first as "Powtórz za mną" (Echo says the word, the child repeats it); then every word is named from its picture after Echo asks in Polish ("kot. Jak to jest po angielsku?").
+- **Ladder of help** (`core/kidsVoice.ts`): a miss shows a hint (the first letter and gaps, "c _ _") and Echo says which letter the word starts with; a second miss has the child repeat after Echo; after two failed repeats the word counts as practised and the round moves on. The recogniser can never stop a child.
+- **Judging** is more lenient than the adults' mode: first the adults' rules, then by sound. A sound key melts vowels together and merges consonants that children and recognisers swap (c/k/q, w/v, th/t, a voiceless final consonant), so "cut" and "kat" count as "cat" and "pencil keys" as "pencil case". A word that sounds alike is accepted only when it is not closer to another word of the same island ("kite" is not "cat" when both are there), and sound matching is skipped in long sentences. Against the Hello Explorer 2 decks every word accepts itself and about 0.2% of the other words are accepted.
+- **No voice commands**: Polish commands are not reliable with an English recogniser, so tapping Echo asks again. The first silence asks again; the second stops listening until the child taps Echo or "Mów".
+- **Rewards**: a word named without help is a first-try hit (star, sticker, level up), anything else counts like a miss in the tap game. The round ends on the usual reward screen, and "Jeszcze raz" repeats the voice round.
+- **Consent**: a parent turns the round on per child profile ("Mów z Echo"), where a note says the system recogniser (on Android usually Google, online) hears the child and Echo stores no audio, and a button checks the microphone. The button is shown only where speech can be recognised (Android, Chrome, Edge); Windows and macOS builds hide it until they have a recogniser.
 
 ## Content
 

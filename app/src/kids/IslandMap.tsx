@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { wakeNeed, type Island } from "../core/kids";
 import { plural } from "../adult/Home";
 import { Bat } from "../ui/Bat";
+import { Icon } from "../ui/icons";
 
 const COLORS = ["var(--topic-animals)", "var(--topic-food)", "var(--topic-toys)", "var(--topic-school)"];
 
@@ -22,7 +23,8 @@ function hint(list: Island[], i: number): string {
   return `${isl.stickers} z ${isl.total} naklejek`;
 }
 
-export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: Island) => void }) {
+/** `onSpeak` (the voice round) is offered only when a parent turned the microphone on and the device can listen. */
+export function IslandMap({ islands, onPlay, onSpeak }: { islands: Island[]; onPlay: (i: Island) => void; onSpeak?: (i: Island) => void }) {
   const open = (i: Island) => !!i.deck && !i.asleep;
   // Start at the newest awake island that is not finished yet.
   let firstOpen = -1;
@@ -65,12 +67,15 @@ export function IslandMap({ islands, onPlay }: { islands: Island[]; onPlay: (i: 
           <span className="mapbat" style={{ left: `${pos[sel].x}%`, top: `${pos[sel].y}%` }}><Bat /></span>
         </div>
       </div>
-      <div className="kfoot">
+      <div className={`kfoot${onSpeak ? " kfoot-two" : ""}`}>
         <div className="kfoot-info">
           <b>{cur.title}</b>
           <small>{hint(islands, sel)}</small>
         </div>
-        <button className="kbtn" disabled={!open(cur)} onClick={() => onPlay(cur)}>Graj! ▶</button>
+        <div className="kfoot-play">
+          {onSpeak && <button className="kbtn kbtn-speak" disabled={!open(cur)} onClick={() => onSpeak(cur)} aria-label="Mów z Echo"><Icon name="mic" size={32} /> Mów</button>}
+          <button className="kbtn" disabled={!open(cur)} onClick={() => onPlay(cur)}>Graj! ▶</button>
+        </div>
       </div>
     </>
   );

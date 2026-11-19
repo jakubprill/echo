@@ -111,7 +111,7 @@ function migrateProfile(raw: Partial<Profile>, i: number): Profile | null {
     avatar: typeof raw.avatar === "string" && raw.avatar ? raw.avatar : AVATARS[i % AVATARS.length],
     progress: obj(raw.progress, {}),
     log: obj(raw.log, {}),
-    kids: { stars: raw.kids?.stars ?? 0, words: obj(raw.kids?.words, {}), ...(typeof raw.kids?.tickets === "number" ? { tickets: raw.kids.tickets } : {}) },
+    kids: { stars: raw.kids?.stars ?? 0, words: obj(raw.kids?.words, {}), ...(typeof raw.kids?.tickets === "number" ? { tickets: raw.kids.tickets } : {}), ...(raw.kids?.levels && typeof raw.kids.levels === "object" ? { levels: raw.kids.levels } : {}) },
     settings: { ...d.settings, ...obj(raw.settings, {}), line: kind },
   };
 }

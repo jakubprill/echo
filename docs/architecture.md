@@ -50,6 +50,7 @@ Plain TypeScript, no DOM. Every function takes a state and returns a new state, 
 | `stats.ts` | day streak, charts, breakdown of words by stage |
 | `voice.ts` | voice mode: choosing words, lenient judging of a spoken answer, voice commands, queue and progress after an answer |
 | `kidsVoice.ts` | kids voice round: judging by sound, the ladder of help (say, hint, repeat), hints and questions |
+| `levels.ts` | the three levels of a Kids island: which are open, best stars per level, words for the Literki level |
 
 This is the part that survives any change of UI technology. If we ever decide on Flutter, this directory is the specification to port 1:1, tests included.
 
@@ -90,9 +91,18 @@ Styles: `tokens.css` carries over the tokens from the design system (same names,
 - **Progress**: a new or due word is graded "Dobrze" or "Nie wiem", like the buttons. A word that is not due is not moved forward by a right answer, but a wrong one becomes due, as in the quiz. "Uznaj, było dobrze" takes back a miss the recogniser got wrong.
 - **Without a recogniser** (Windows, macOS for now) the mode reads only: word, four seconds to think, translation. Progress does not change.
 
+### Island levels
+
+Every Kids island has three levels with the same words, each a harder skill: 1 "Pokaż" (hear the word, tap its picture: the tap round), 2 "Literki" (spell the island's words from letter tiles, the mini-game reused without a ticket) and 3 "Powiedz" (the voice round below). The rules are in `core/levels.ts`:
+
+- A level is passed with a round of at least two stars (the same two stars that earn a mini-game ticket). Passing it opens the next level; the best stars of each level are kept per island in `kids.levels`.
+- A level that cannot be played is skipped: "Powiedz" without the parent's microphone switch or on a device without speech recognition, "Literki" on an island with fewer than three words short enough to spell. The island's level count only counts the levels that can be played.
+- A sleeping island has every level locked; the parent's "all islands open" setting opens all levels too.
+- Tapping a closed level tells the child in the footer what opens it, instead of doing nothing.
+
 ### Kids voice round ("Mów z Echo")
 
-Echo Kids has its own voice round, started from the island with the "Mów" button next to "Graj!". The child speaks English: there is no translating into Polish, because the tap game already trains listening.
+Echo Kids has its own voice round, level 3 ("Powiedz") of every island (see "Island levels" below). The child speaks English: there is no translating into Polish, because the tap game already trains listening.
 
 - **Round**: the same six words as a tap round (`buildRound`). New words come first as "Powtórz za mną" (Echo says the word, the child repeats it); then every word is named from its picture after Echo asks in Polish ("kot. Jak to jest po angielsku?").
 - **Ladder of help** (`core/kidsVoice.ts`): a miss shows a hint (the first letter and gaps, "c _ _") and Echo says which letter the word starts with; a second miss has the child repeat after Echo; after two failed repeats the word counts as practised and the round moves on. The recogniser can never stop a child.

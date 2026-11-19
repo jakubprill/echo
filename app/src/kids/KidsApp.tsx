@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { leaveProfile } from "../App";
+import { useMemo, useState } from "react";
+import { KidsSwitch } from "./KidsSwitch";
 import { kidsWorlds, roundStars, type Island, type KidsWorld } from "../core/kids";
 import { addTickets, finishGame, spendTicket, tickets, ticketsFor, wordsFor, type MiniGame } from "../core/games";
 import type { Card, Deck } from "../core/types";
@@ -26,45 +26,6 @@ const MINI = { memory: Memory, balloons: Balloons, letters: Letters };
 
 export function Jar({ stars }: { stars: number }) {
   return <span className="jar" aria-label={`Gwiazdki: ${stars}`}><i /><b key={stars}>{stars}</b></span>;
-}
-
-/** Leaving kids mode requires holding the button so a child does not exit by accident. */
-function ParentGate() {
-  const t = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const tipTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [hold, setHold] = useState(false);
-  const [tip, setTip] = useState(false);
-  useEffect(() => () => { clearTimeout(t.current); clearTimeout(tipTimer.current); }, []);
-  const stop = () => {
-    if (!hold) return;
-    clearTimeout(t.current);
-    setHold(false);
-    // A short tap explains the gesture instead of doing nothing.
-    setTip(true);
-    clearTimeout(tipTimer.current);
-    tipTimer.current = setTimeout(() => setTip(false), 3500);
-  };
-  return (
-    <span className="gate-wrap">
-      <button
-        className={`kround gate${hold ? " hold" : ""}`}
-        aria-label="Dla rodzica: przytrzymaj, aby wyjść z Echo Kids"
-        onPointerDown={(e) => {
-          e.currentTarget.setPointerCapture?.(e.pointerId);
-          setHold(true);
-          setTip(false);
-          t.current = setTimeout(leaveProfile, 1300);
-        }}
-        onPointerUp={stop}
-        onPointerCancel={stop}
-        onContextMenu={(e) => e.preventDefault()}
-        onKeyDown={(e) => e.key === "Enter" && leaveProfile()}
-      >
-        <Icon name="user" size={32} />
-      </button>
-      {tip && <span className="gate-tip" role="status">Rodzicu: przytrzymaj ten przycisk, aby wyjść z Echo Kids</span>}
-    </span>
-  );
 }
 
 export function KidsApp() {
@@ -117,7 +78,7 @@ export function KidsApp() {
 
   const header = (title: string, back?: () => void) => (
     <header className="khdr">
-      <ParentGate />
+      <KidsSwitch />
       {back && <button className="kround" onClick={back} aria-label="Wróć do książek"><Icon name="back" size={32} /></button>}
       <h1>{title}</h1>
       <span className="sp" />

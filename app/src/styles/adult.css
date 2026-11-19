@@ -7,6 +7,22 @@
 .rail button { width: 88px; min-height: 72px; border: 0; border-radius: var(--r-md); background: none; color: var(--muted); display: grid; place-items: center; align-content: center; gap: 2px; font-weight: 700; font-size: 13px; }
 .rail button.on { background: var(--accent-soft); color: var(--accent); }
 .main { min-width: 0; overflow-y: auto; }
+/* Who is learning: always visible at the end of the navigation, opens the profile switcher. */
+.rail .rail-me { margin-top: auto; min-height: 84px; color: var(--fg); gap: 4px; }
+.rail-avatar { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-size: 30px; line-height: 1; background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent); }
+.rail-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-back { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.45); display: grid; place-items: center; padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom)); }
+.sheet { width: min(100%, 460px); max-height: 100%; overflow-y: auto; display: grid; gap: 16px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sheet-head h2 { font: 600 24px/1.2 var(--f-display); margin: 0; }
+.switch-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.switch-item { width: 100%; display: flex; align-items: center; gap: 14px; min-height: 72px; padding: 10px 16px; border: 0; border-radius: var(--r-md); background: var(--sunk); color: var(--fg); text-align: left; }
+.switch-item b { flex: 1; min-width: 0; font: 700 20px var(--f-display); overflow-wrap: anywhere; }
+.switch-item small { color: var(--muted); font-weight: 700; font-size: 14px; }
+.switch-item.on { background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent) inset; }
+.switch-item.on small { color: var(--accent); }
+.switch-item small.switch-kids { padding: 3px 10px; border-radius: 99px; background: #1e1b4b; color: #facc15; }
+.switch-avatar { font-size: 36px; line-height: 1; width: 48px; text-align: center; flex: none; }
 
 .page { max-width: 1120px; margin: 0 auto; padding-block: clamp(20px, 4vh, 40px) 40px; padding-left: var(--gutter-l); padding-right: var(--gutter-r); display: grid; gap: 24px; align-content: start; }
 .page > * { min-width: 0; }
@@ -204,7 +220,11 @@
   .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
   .rail { grid-row: 2; flex-direction: row; justify-content: space-around; border-right: 0; border-top: 1px solid var(--line); padding: 6px max(6px, var(--safe-right)) max(6px, var(--safe-bottom)) max(6px, var(--safe-left)); gap: 2px; overflow: visible; }
   .rail .logo { display: none; }
-  .rail button { width: auto; flex: 1; min-width: 0; min-height: 60px; font-size: 12px; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rail .rail-me { margin-top: 0; min-height: 60px; gap: 2px; }
+  .rail-avatar { width: 30px; height: 30px; font-size: 20px; box-shadow: 0 0 0 2px var(--accent); }
+  .sheet-back { place-items: end center; padding: calc(16px + var(--safe-top)) 0 0; }
+  .sheet { width: 100%; border-radius: var(--r-lg) var(--r-lg) 0 0; padding-bottom: calc(18px + var(--safe-bottom)); }
+  .rail button { width: auto; flex: 1; min-width: 0; min-height: 60px; font-size: 11px; padding: 0 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .page { padding-bottom: 24px; gap: 20px; }
   .btn { padding: 0 22px; }
   .row > .btn { flex: 1 1 auto; }

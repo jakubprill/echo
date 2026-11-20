@@ -194,6 +194,10 @@
 .kworld small { font: 700 clamp(16px, 2.8vmin, 20px) var(--f-kb); opacity: 0.75; }
 .kworld .lamps { position: static; align-items: center; height: auto; flex-wrap: wrap; justify-content: center; }
 
+/* word pictures (WordPic): built-in pictures sit on a white tile so they read well on the night sky */
+.wordpic { display: inline-grid; place-items: center; line-height: 1.1; vertical-align: middle; white-space: nowrap; }
+.wordpic img { width: 1.4em; height: 1.4em; object-fit: contain; border-radius: 0.16em; background: #fff; padding: 0.05em; box-sizing: border-box; -webkit-user-drag: none; }
+.wordpic .wp-multi { font-size: 0.6em; }
 /* "Mów z Echo": the voice round. Big picture card, Echo listening beside it. */
 .kfoot-play { display: flex; gap: clamp(10px, 2vmin, 20px); flex: none; }
 .kbtn-speak { background: var(--easy); color: var(--accent-ink); box-shadow: 0 8px 0 #2f6fbf; }
@@ -232,9 +236,6 @@
 .kreward-main { display: flex; flex-direction: column; }
 .kreward-main > .rlamp, .kreward-main > .rwoke, .kreward-main > .rticket { align-self: center; }
 .kreward-main > .stickers { flex: 1 1 0; }
-.wordpic { display: inline-block; line-height: 1.1; object-fit: contain; white-space: nowrap; }
-.wordpic .wp-multi { font-size: 0.6em; }
-img.wordpic { width: 1.2em; height: 1.2em; }
 .kticket { display: flex; align-items: center; gap: 6px; flex: none; border: 0; border-radius: 99px; padding: 6px 16px 6px 10px; min-height: 56px; background: rgba(255, 255, 255, 0.1); color: var(--fg); font: 800 clamp(22px, 3.8vmin, 30px) var(--f-kd); font-variant-numeric: tabular-nums; }
 .kticket span { font-size: 1.2em; line-height: 1; }
 .kticket.has { background: var(--card); color: var(--card-ink); box-shadow: 0 5px 0 var(--card-edge), 0 0 18px rgba(251, 113, 133, 0.6); }

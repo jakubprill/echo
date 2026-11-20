@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { WordPic } from "./WordPic";
 import { bestStreak, playable, roundStars, stickerTier, type Island } from "../core/kids";
 import { sfx } from "../platform/sfx";
 import { say, useAppState } from "../state/store";
@@ -67,14 +68,14 @@ export function Reward({ result, before, after, woke, stars, ticket, tickets, on
           )}
           {woke && (
             <div className="rwoke" role="status">
-              <span>{woke.emoji}</span>
+              <span><WordPic card={{ emoji: woke.emoji, pic: woke.pic, en: woke.title }} /></span>
               <div><b>Budzi się nowa wyspa!</b><small>{woke.title} czeka na Ciebie</small></div>
             </div>
           )}
           <div className="stickers">
             {won.map((c, i) => (
               <button key={c.id} className={`st tier-${stickerTier(s.kids.words[c.id])}`} style={{ animationDelay: `${0.4 + rating * 0.38 + i * 0.12}s` }} onClick={() => say(c.en, 0.8)} aria-label={c.en}>
-                <span>{c.emoji}</span><small lang="en">{c.en}</small>
+                <span><WordPic card={c} /></span><small lang="en">{c.en}</small>
               </button>
             ))}
           </div>
@@ -106,7 +107,7 @@ export function Album({ islands, onBack }: { islands: Island[]; onBack: () => vo
             <div className="stickers stickers-album">
               {playable(isl.deck!).map((c) =>
                 s.kids.words[c.id]?.sticker ? (
-                  <button key={c.id} className={`st tier-${stickerTier(s.kids.words[c.id])}`} onClick={() => say(c.en, 0.8)} aria-label={c.en}><span>{c.emoji}</span><small lang="en">{c.en}</small></button>
+                  <button key={c.id} className={`st tier-${stickerTier(s.kids.words[c.id])}`} onClick={() => say(c.en, 0.8)} aria-label={c.en}><span><WordPic card={c} /></span><small lang="en">{c.en}</small></button>
                 ) : (
                   <span key={c.id} className="st empty" aria-label="Pusta naklejka" />
                 ),

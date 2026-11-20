@@ -13,6 +13,7 @@ import { Bat, type BatMood } from "../ui/Bat";
 import { Icon } from "../ui/icons";
 import type { RoundResult } from "./Game";
 import { Jar } from "./KidsApp";
+import { WordPic } from "./WordPic";
 
 const SLOW = 0.8;
 
@@ -250,7 +251,7 @@ export function Speak({ island, onExit, onDone }: { island: Island; onExit: () =
       </header>
       <div className="kspeak">
         <div className={`kcard kspeak-card${phase === "right" ? " right" : ""}`}>
-          <span className="kcard-e" ref={pic}>{c.emoji}</span>
+          <span className="kcard-e" ref={pic}><WordPic card={c} /></span>
           {showWord ? (
             <span className="kcard-w echoword" lang="en">
               {c.en}

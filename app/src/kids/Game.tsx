@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { WordPic } from "./WordPic";
 import { applyKidsAnswer, buildRound, type Island } from "../core/kids";
 import type { Card } from "../core/types";
 import { getState, say, update, useAppState } from "../state/store";
@@ -117,7 +118,7 @@ export function Game({ island, onExit, onDone }: { island: Island; onExit: () =>
         {header}
         <div className="kintro">
           <button className="kcard" onClick={() => listen(c.en)} aria-label={`Posłuchaj: ${c.en}`}>
-            <span className="kcard-e">{c.emoji}</span>
+            <span className="kcard-e"><WordPic card={c} /></span>
             <span className="kcard-w" lang="en">{c.en}</span>
             <span className="kcard-pl">{c.pl}</span>
             <span className="kcard-say"><Icon name="speaker" size={32} /></span>
@@ -146,7 +147,7 @@ export function Game({ island, onExit, onDone }: { island: Island; onExit: () =>
             const cls = solved && isTarget ? " ok" : missed.includes(o.id) ? " no" : missed.length > 0 && isTarget ? " show" : "";
             return (
               <button key={o.id} className={`pick${cls}`} onClick={(e) => pick(o, e.currentTarget)} aria-label={missed.length > 0 || solved ? o.en : "obrazek"}>
-                <span>{o.emoji}</span>
+                <span><WordPic card={o} /></span>
               </button>
             );
           })}

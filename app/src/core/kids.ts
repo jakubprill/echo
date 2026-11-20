@@ -5,12 +5,15 @@ import { groupDecks, shortTitle } from "./folders";
 export const ROUND_SIZE = 6;
 export const MAX_LEVEL = 3;
 
-export type Island = { id: string; title: string; emoji: string; deck: Deck | null; lamps: number; stickers: number; gold: number; total: number; asleep: boolean };
+export type Island = { id: string; title: string; emoji: string; pic?: string; deck: Deck | null; lamps: number; stickers: number; gold: number; total: number; asleep: boolean };
 
 export const word = (s: AppState, id: string): KidsWord => s.kids.words[id] ?? { level: 0, sticker: false, seen: 0 };
 
 /** Cards that can be played with pictures. */
-export const playable = (d: Deck): Card[] => d.cards.filter((c) => c.emoji);
+export const playable = (d: Deck): Card[] => d.cards.filter((c) => c.emoji || c.pic);
+
+/** What a card looks like: two cards with the same key show the same picture. */
+export const pictureKey = (c: Card): string => (c.pic ? `pic:${c.pic}` : `emoji:${c.emoji ?? ""}`);
 
 /**
  * Islands on the map: the book's units (including those without a deck yet), then decks outside any book.
@@ -22,7 +25,7 @@ export function islands(decks: Deck[], books: Book[], s: AppState, openAll = fal
     const cards = deck ? playable(deck) : [];
     const stickers = cards.filter((c) => word(s, c.id).sticker).length;
     const gold = cards.filter((c) => stickerTier(word(s, c.id)) === 3).length;
-    return { id, title, emoji: cards[0]?.emoji ?? "🏝️", deck, lamps: cards.length ? Math.floor((3 * stickers) / cards.length) : 0, stickers, gold, total: cards.length, asleep: false };
+    return { id, title, emoji: cards[0]?.emoji ?? "🏝️", pic: cards[0]?.pic, deck, lamps: cards.length ? Math.floor((3 * stickers) / cards.length) : 0, stickers, gold, total: cards.length, asleep: false };
   };
   const used = new Set<string>();
   const out: Island[] = [];
@@ -52,11 +55,11 @@ export function buildRound(deck: Deck, s: AppState, rnd: () => number = Math.ran
   const ranked = cards.map((c, i) => ({ c, i, w: word(s, c.id) })).sort((a, b) => a.w.level - b.w.level || a.w.seen - b.w.seen || a.i - b.i);
   const chosen = ranked.slice(0, ROUND_SIZE);
   const questions = shuffle(chosen, rnd).map(({ c }) => {
-    const emojis = new Set([c.emoji]);
+    const shown = new Set([pictureKey(c)]);
     const others: Card[] = [];
     for (const o of shuffle(cards, rnd)) {
-      if (emojis.has(o.emoji)) continue;
-      emojis.add(o.emoji);
+      if (shown.has(pictureKey(o))) continue;
+      shown.add(pictureKey(o));
       others.push(o);
       if (others.length === 3) break;
     }

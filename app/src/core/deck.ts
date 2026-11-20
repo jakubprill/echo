@@ -11,7 +11,7 @@ function parseCard(raw: unknown, deckId: string, i: number): Card {
   const pl = str(c.pl);
   if (!en || !pl) throw new DeckError(`Karta ${i + 1} w talii „${deckId}” nie ma pola „en” albo „pl”.`);
   const card: Card = { id: str(c.id) || `${deckId}-${String(i + 1).padStart(2, "0")}`, en, pl };
-  for (const k of ["ex", "gap", "note", "exPl", "pos", "lesson", "emoji", "img"] as const) {
+  for (const k of ["ex", "gap", "note", "exPl", "pos", "lesson", "emoji", "pic", "img"] as const) {
     const v = str(c[k]);
     if (v) card[k] = v;
   }

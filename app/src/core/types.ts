@@ -14,6 +14,8 @@ export type Card = {
   lesson?: string;
   page?: number;
   emoji?: string;
+  /** Picture id from the app's built-in picture library (src/kids/pics/<id>.svg|png). Shown instead of the emoji. */
+  pic?: string;
   img?: string;
 };
 

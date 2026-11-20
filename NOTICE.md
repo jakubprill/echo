@@ -28,6 +28,10 @@ The OFL allows the fonts to be used in any project, including commercial ones.
 
 Review scheduling is an original implementation based on the publicly described SM-2 algorithm (P. A. Woźniak, 1990). Echo is not affiliated with SuperMemo, Anki or any other learning app. The names mentioned belong to their owners.
 
+## Word pictures (Kids)
+
+The pictograms in `app/src/kids/pics/` (`arasaac-*.png`) are by Sergio Palao for [ARASAAC](https://arasaac.org), owned by the Government of Aragón (Spain), and distributed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). They are excluded from the MIT license of this repository: no commercial use, and adapted versions (here: scaled to 256 px with a reduced palette) keep the same license. The app credits them in Settings. Details: `app/src/kids/pics/README.md`.
+
 ## Content
 
 This repository contains no vocabulary decks apart from the examples in `examples/`, which were written for this project. `examples/travel.json` is dedicated to the public domain under CC0 1.0. Decks loaded by users are their own data, and users are responsible for having the right to use them.

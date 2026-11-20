@@ -22,7 +22,8 @@
    "topics": [
     "animals"
    ],
-   "emoji": "🐱"
+   "emoji": "🐱",
+   "pic": "arasaac-7114"
   },
   {
    "id": "przyklad-kids-animals-02",
@@ -35,7 +36,8 @@
    "topics": [
     "animals"
    ],
-   "emoji": "🐶"
+   "emoji": "🐶",
+   "pic": "arasaac-2517"
   },
   {
    "id": "przyklad-kids-animals-03",
@@ -74,7 +76,8 @@
    "topics": [
     "animals"
    ],
-   "emoji": "🐴"
+   "emoji": "🐴",
+   "pic": "arasaac-2294"
   },
   {
    "id": "przyklad-kids-animals-06",
@@ -87,7 +90,8 @@
    "topics": [
     "animals"
    ],
-   "emoji": "🐮"
+   "emoji": "🐮",
+   "pic": "arasaac-2609"
   },
   {
    "id": "przyklad-kids-animals-07",
@@ -100,7 +104,8 @@
    "topics": [
     "animals"
    ],
-   "emoji": "🐰"
+   "emoji": "🐰",
+   "pic": "arasaac-2351"
   },
   {
    "id": "przyklad-kids-animals-08",
@@ -126,7 +131,8 @@
    "topics": [
     "animals"
    ],
-   "emoji": "🦆"
+   "emoji": "🦆",
+   "pic": "arasaac-2563"
   }
  ]
 }

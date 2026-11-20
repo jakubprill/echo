@@ -158,6 +158,7 @@ export function Settings() {
           <button className="btn btn-quiet" onClick={leaveProfile}><Icon name="user" /> Zmień profil</button>
         </div>
         {!canSelfUpdate() && <p className="sub">Echo {__ECHO_VERSION__}</p>}
+        <p className="sub">Obrazki słówek: Sergio Palao, <a href="https://arasaac.org" target="_blank" rel="noreferrer">ARASAAC</a>, własność Rządu Aragonii, licencja CC BY-NC-SA 4.0.</p>
       </section>
 
       {canSelfUpdate() && <Updates />}

@@ -2,7 +2,7 @@
 // and a ticket buys one game. Games only use words the child has already met.
 import type { AppState, Card, Deck } from "./types";
 import { shuffle } from "./date";
-import { playable, word } from "./kids";
+import { pictureKey, playable, word } from "./kids";
 
 export type MiniGame = "memory" | "balloons" | "letters";
 
@@ -39,8 +39,8 @@ export function gameWords(decks: Deck[], s: AppState, n: number, rnd: () => numb
   const out: Card[] = [];
   const pics = new Set<string>();
   for (const c of known) {
-    if (pics.has(c.emoji!)) continue;
-    pics.add(c.emoji!);
+    if (pics.has(pictureKey(c))) continue;
+    pics.add(pictureKey(c));
     out.push(c);
     if (out.length === n) break;
   }

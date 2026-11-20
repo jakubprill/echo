@@ -1,21 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { WordPic } from "./WordPic";
-import { leaveProfile } from "../App";
+import { KidsSwitch } from "./KidsSwitch";
 import { kidsWorlds, roundStars, type Island, type KidsWorld } from "../core/kids";
 import { addTickets, finishGame, spendTicket, tickets, ticketsFor, wordsFor, type MiniGame } from "../core/games";
 import type { Card, Deck } from "../core/types";
 import { bundledBooks, decksFor, getState, update, useAppState } from "../state/store";
 import { Icon } from "../ui/icons";
 import { setSfxEnabled } from "../platform/sfx";
+import { canListen } from "../platform/listen";
 import { Game, type RoundResult } from "./Game";
 import { IslandMap } from "./IslandMap";
 import { Album, Reward } from "./Reward";
+import { Speak } from "./Speak";
 import { Balloons, GameEnd, GamePicker, Letters, Memory, Ticket } from "./Games";
 
+/** A round is the tap game or, with `voice`, "Mów z Echo"; "Jeszcze raz" on the reward screen repeats the same kind. */
 type View =
   | { name: "shelf" | "map" | "album" }
-  | { name: "game"; island: Island; round: number; asleep: string[] }
-  | { name: "reward"; island: Island; result: RoundResult; round: number; asleep: string[]; ticket: boolean }
+  | { name: "game"; island: Island; round: number; asleep: string[]; voice?: boolean }
+  | { name: "reward"; island: Island; result: RoundResult; round: number; asleep: string[]; ticket: boolean; voice?: boolean }
   | { name: "games"; decks: Deck[] }
   | { name: "mini"; game: MiniGame; words: Card[]; decks: Deck[]; n: number }
   | { name: "miniEnd"; game: MiniGame; stars: 1 | 2 | 3; decks: Deck[] };
@@ -24,45 +27,6 @@ const MINI = { memory: Memory, balloons: Balloons, letters: Letters };
 
 export function Jar({ stars }: { stars: number }) {
   return <span className="jar" aria-label={`Gwiazdki: ${stars}`}><i /><b key={stars}>{stars}</b></span>;
-}
-
-/** Leaving kids mode requires holding the button so a child does not exit by accident. */
-function ParentGate() {
-  const t = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const tipTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [hold, setHold] = useState(false);
-  const [tip, setTip] = useState(false);
-  useEffect(() => () => { clearTimeout(t.current); clearTimeout(tipTimer.current); }, []);
-  const stop = () => {
-    if (!hold) return;
-    clearTimeout(t.current);
-    setHold(false);
-    // A short tap explains the gesture instead of doing nothing.
-    setTip(true);
-    clearTimeout(tipTimer.current);
-    tipTimer.current = setTimeout(() => setTip(false), 3500);
-  };
-  return (
-    <span className="gate-wrap">
-      <button
-        className={`kround gate${hold ? " hold" : ""}`}
-        aria-label="Dla rodzica: przytrzymaj, aby wyjść z Echo Kids"
-        onPointerDown={(e) => {
-          e.currentTarget.setPointerCapture?.(e.pointerId);
-          setHold(true);
-          setTip(false);
-          t.current = setTimeout(leaveProfile, 1300);
-        }}
-        onPointerUp={stop}
-        onPointerCancel={stop}
-        onContextMenu={(e) => e.preventDefault()}
-        onKeyDown={(e) => e.key === "Enter" && leaveProfile()}
-      >
-        <Icon name="user" size={32} />
-      </button>
-      {tip && <span className="gate-tip" role="status">Rodzicu: przytrzymaj ten przycisk, aby wyjść z Echo Kids</span>}
-    </span>
-  );
 }
 
 export function KidsApp() {
@@ -76,6 +40,8 @@ export function KidsApp() {
   const world: KidsWorld | undefined = worlds.length === 1 ? worlds[0] : worlds.find((w) => w.id === worldId);
   const list = world?.islands ?? [];
   const sleeping = () => list.filter((i) => i.asleep).map((i) => i.id);
+  // "Mów z Echo" needs a parent's consent on the profile and a device that recognises speech.
+  const voice = s.settings.kidsVoice === true && canListen();
 
   const toMap = () => setView({ name: "map" });
   // A ticket buys one mini-game with words from the given decks.
@@ -85,21 +51,24 @@ export function KidsApp() {
     setView({ name: "mini", game, words: wordsFor(game, ds, getState()), decks: ds, n: Date.now() });
   };
 
-  if (view.name === "game")
+  if (view.name === "game") {
+    const Round = view.voice ? Speak : Game;
     return (
-      <Game
+      <Round
         key={`${view.island.id}-${view.round}`}
         island={view.island}
         onExit={toMap}
         onDone={(result) => {
+          // Both rounds earn mini-game tickets the same way.
           const earned = ticketsFor(roundStars(result.won.length, result.firstTries.length));
           update((st) => addTickets(st, earned));
-          setView({ name: "reward", island: view.island, result, round: view.round, asleep: view.asleep, ticket: earned > 0 });
+          setView({ name: "reward", island: view.island, result, round: view.round, asleep: view.asleep, ticket: earned > 0, voice: view.voice });
         }}
       />
     );
+  }
   if (view.name === "reward")
-    return <Reward result={view.result} before={view.island} after={list.find((i) => i.id === view.island.id) ?? view.island} woke={list.find((i) => view.asleep.includes(i.id) && !i.asleep)} stars={s.kids.stars} ticket={view.ticket} tickets={tickets(s)} onGames={() => setView({ name: "games", decks: [view.island.deck!] })} onAgain={() => setView({ name: "game", island: list.find((i) => i.id === view.island.id) ?? view.island, round: view.round + 1, asleep: sleeping() })} onMap={toMap} />;
+    return <Reward result={view.result} before={view.island} after={list.find((i) => i.id === view.island.id) ?? view.island} woke={list.find((i) => view.asleep.includes(i.id) && !i.asleep)} stars={s.kids.stars} ticket={view.ticket} tickets={tickets(s)} onGames={() => setView({ name: "games", decks: [view.island.deck!] })} onAgain={() => setView({ name: "game", island: list.find((i) => i.id === view.island.id) ?? view.island, round: view.round + 1, asleep: sleeping(), voice: view.voice })} onMap={toMap} />;
   if (view.name === "games") return <GamePicker decks={view.decks} tickets={tickets(s)} onPlay={(g) => play(g, view.decks)} onBack={toMap} />;
   if (view.name === "mini") {
     const Mini = MINI[view.game];
@@ -110,7 +79,7 @@ export function KidsApp() {
 
   const header = (title: string, back?: () => void) => (
     <header className="khdr">
-      <ParentGate />
+      <KidsSwitch />
       {back && <button className="kround" onClick={back} aria-label="Wróć do książek"><Icon name="back" size={32} /></button>}
       <h1>{title}</h1>
       <span className="sp" />
@@ -139,7 +108,12 @@ export function KidsApp() {
           <small>Rodzic może wczytać talię dla dzieci w Echo: Talie, Wczytaj z pliku.</small>
         </div>
       ) : (
-        <IslandMap key={world?.id} islands={list} onPlay={(island) => setView({ name: "game", island, round: 0, asleep: sleeping() })} />
+        <IslandMap
+          key={world?.id}
+          islands={list}
+          onPlay={(island) => setView({ name: "game", island, round: 0, asleep: sleeping() })}
+          onSpeak={voice ? (island) => setView({ name: "game", island, round: 0, asleep: sleeping(), voice: true }) : undefined}
+        />
       )}
     </div>
   );

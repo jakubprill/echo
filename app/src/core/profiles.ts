@@ -49,7 +49,7 @@ export function addProfile(h: Household, name: string, kind: Audience, avatar: s
 }
 
 /** Options a parent sets on a child's profile in the profile form. */
-export type KidsOptions = Pick<Settings, "sounds" | "kidsOpenAll">;
+export type KidsOptions = Pick<Settings, "sounds" | "kidsOpenAll" | "kidsVoice">;
 
 export function editProfile(h: Household, id: string, patch: { name?: string; avatar?: string; kidsOptions?: KidsOptions }): Household {
   const name = patch.name === undefined ? undefined : cleanName(patch.name);

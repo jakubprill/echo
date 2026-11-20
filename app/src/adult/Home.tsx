@@ -3,7 +3,8 @@ import { dayNumber, dayToDate } from "../core/date";
 import { groupDecks, shortTitle, type Folder } from "../core/folders";
 import { counts } from "../core/session";
 import { lastDays, streak } from "../core/stats";
-import { bundledBooks, decksFor, useAppState } from "../state/store";
+import { bundledBooks, decksFor, useAppState, useHousehold } from "../state/store";
+import { activeProfile } from "../core/profiles";
 import { Icon } from "../ui/icons";
 import { VoiceNotice } from "../ui/VoiceNotice";
 import { UpdateBanner } from "../ui/UpdateBanner";
@@ -21,6 +22,7 @@ export function plural(n: number, one: string, few: string, many: string): strin
 
 export function Home({ nav }: { nav: Nav }) {
   const s = useAppState();
+  const me = activeProfile(useHousehold());
   const today = dayNumber();
   const decks = decksFor(s, "adults");
   const c = counts(decks, s, today);
@@ -50,7 +52,7 @@ export function Home({ nav }: { nav: Nav }) {
   return (
     <div className="page">
       <header>
-        <h1>{hour < 18 ? "Dzień dobry" : "Dobry wieczór"}</h1>
+        <h1>{hour < 18 ? "Dzień dobry" : "Dobry wieczór"}{me ? `, ${me.name}` : ""}</h1>
         <p className="sub">{date.charAt(0).toUpperCase() + date.slice(1)}{st > 0 ? ` · seria ${st} ${plural(st, "dzień", "dni", "dni")}` : ""}</p>
       </header>
 

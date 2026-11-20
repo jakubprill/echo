@@ -7,6 +7,7 @@ import { Decks } from "./Decks";
 import { Progress } from "./Progress";
 import { Settings } from "./Settings";
 import { Voice } from "./Voice";
+import { ProfileButton, ProfileSheet } from "./ProfileSwitch";
 
 export type View = { name: "home" | "decks" | "progress" | "settings" | "study" | "quiz" | "voice"; deckId?: string; folder?: string };
 export type Nav = (v: View) => void;
@@ -21,6 +22,7 @@ const TABS: { name: "home" | "decks" | "quiz" | "progress" | "settings"; icon: I
 
 export function AdultApp() {
   const [view, setView] = useState<View>({ name: "home" });
+  const [switching, setSwitching] = useState(false);
   const active = view.name === "study" || view.name === "voice" ? "home" : view.name;
   // Study and the voice mode take the full screen so navigation does not distract during a session.
   const immersive = view.name === "study" || view.name === "voice";
@@ -35,6 +37,7 @@ export function AdultApp() {
               {t.label}
             </button>
           ))}
+          <ProfileButton onOpen={() => setSwitching(true)} />
         </nav>
       )}
       <main className="main">
@@ -46,6 +49,7 @@ export function AdultApp() {
         {view.name === "progress" && <Progress />}
         {view.name === "settings" && <Settings />}
       </main>
+      {switching && <ProfileSheet onClose={() => setSwitching(false)} />}
     </div>
   );
 }

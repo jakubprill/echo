@@ -332,3 +332,36 @@ button.kticket:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0, 
   .lpic { height: auto; width: min(56vw, 28vh); max-height: none; }
   .lpic .wordpic { font-size: min(30vw, 15vh); }
 }
+
+/* island levels: three level tiles under the map, the selected island's stars per level */
+.kfoot-levels { align-items: center; }
+.klevels { display: flex; gap: clamp(8px, 1.6vmin, 16px); flex: none; }
+.klevel { position: relative; display: grid; justify-items: center; align-content: center; gap: 2px; width: clamp(96px, 15vmin, 140px); min-height: clamp(96px, 15vmin, 132px); padding: 10px 6px 8px; border: 0; border-radius: var(--r-kids); background: var(--accent); color: var(--accent-ink); box-shadow: 0 8px 0 var(--accent-edge); transition: transform 0.1s; }
+.klevel.lv2 { background: var(--again); color: #fff; box-shadow: 0 8px 0 #be3a55; }
+.klevel.lv3 { background: var(--easy); color: var(--accent-ink); box-shadow: 0 8px 0 #2f6fbf; }
+.klevel:active { transform: translateY(6px) scale(1.04, 0.92); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); }
+.klevel.lock { background: var(--surface); color: var(--muted); box-shadow: 0 8px 0 var(--sunk); }
+.klevel.lock:active { transform: translateX(4px); }
+.klevel.off { opacity: 0.55; }
+.klevel-n { position: absolute; top: -10px; left: -6px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); color: var(--fg); font: 800 20px/1 var(--f-kd); box-shadow: 0 0 0 3px currentColor; }
+.klevel.lock .klevel-n { color: var(--muted); }
+.klevel-e { font-size: clamp(30px, 5.4vmin, 44px); line-height: 1; }
+.klevel b { font: 800 clamp(17px, 2.8vmin, 23px)/1.1 var(--f-kd); }
+.klevel-stars { display: flex; gap: 3px; }
+.klevel-stars i { width: 16px; height: 16px; background: rgba(0, 0, 0, 0.25); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.klevel-stars i.on { background: #ffd34d; filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.4)); }
+.klevel.lock .klevel-stars i { background: rgba(255, 255, 255, 0.12); }
+/* Gold stars do not show on the yellow first level: there they are white on a dark outline. */
+.klevel.lv1:not(.lock) .klevel-stars i.on { background: #fff; filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.7)); }
+.klevel-tag { flex: none; border-radius: 99px; padding: 6px 14px; background: var(--surface); color: var(--fg); font: 800 clamp(16px, 2.8vmin, 22px) var(--f-kd); }
+@media (max-aspect-ratio: 1/1) {
+  .kfoot-levels { flex-wrap: wrap; row-gap: 14px; }
+  .kfoot-levels .kfoot-info, .kfoot-levels .klevels { flex: 1 1 100%; }
+  .klevels .klevel { flex: 1 1 0; width: auto; }
+  .klevel-tag { display: none; }
+  /* A newly opened level and a ticket together leave the stickers little room on a phone: keep the two notes to one line each. */
+  .kreward-main:has(.rlevel) > :is(.rlevel, .rticket, .rwoke) small { display: none; }
+  .kreward-main:has(.rlevel) > :is(.rlevel, .rticket, .rwoke) { padding-block: 4px; }
+  .kreward-main:has(.rlevel) .rstars i { width: clamp(48px, 11vmin, 90px); }
+  .kreward-main:has(.rlevel) .rstars i:nth-child(2) { width: clamp(60px, 14vmin, 110px); }
+}

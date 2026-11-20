@@ -65,8 +65,8 @@ export type DayLog = { reviews: number; fresh: number; correct: number };
 /** A child's progress: level 0–3 (Leitner boxes) and a sticker for the first hit. */
 export type KidsWord = { level: number; sticker: boolean; seen: number };
 
-/** A child's stars, words and mini-game tickets (missing in older saves means none). */
-export type KidsState = { stars: number; words: Record<string, KidsWord>; tickets?: number };
+/** A child's stars, words, mini-game tickets and best stars per island level (missing in older saves means none). */
+export type KidsState = { stars: number; words: Record<string, KidsWord>; tickets?: number; levels?: Record<string, Partial<Record<1 | 2 | 3, 1 | 2 | 3>>> };
 
 export type Settings = {
   line: Audience | null;

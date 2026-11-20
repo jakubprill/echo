@@ -7,6 +7,11 @@ import { Bat } from "../ui/Bat";
 import { Icon } from "../ui/icons";
 import type { RoundResult } from "./Game";
 import { Jar } from "./KidsApp";
+import { LEVEL_INFO } from "./IslandMap";
+import type { Level } from "../core/levels";
+
+/** The island level a round was played on; `rating` replaces the tap-round rating (Literki rates by slips), `opened` is a level the round opened. */
+export type RoundLevel = { level: Level; rating?: 1 | 2 | 3; score?: string; opened: Level | null; onNext: () => void };
 
 const CONFETTI = ["var(--accent)", "var(--good)", "var(--again)", "var(--easy)", "var(--topic-school)"];
 
@@ -18,10 +23,11 @@ function wordsLabel(n: number): string {
 
 const TITLES = ["", "Dobra próba!", "Brawo!", "Super runda!"];
 
-export function Reward({ result, before, after, woke, stars, ticket, tickets, onGames, onAgain, onMap }: { result: RoundResult; before: Island; after: Island; woke?: Island; stars: number; ticket: boolean; tickets: number; onGames: () => void; onAgain: () => void; onMap: () => void }) {
+export function Reward({ result, level, before, after, woke, stars, ticket, tickets, onGames, onAgain, onMap }: { result: RoundResult; level?: RoundLevel; before: Island; after: Island; woke?: Island; stars: number; ticket: boolean; tickets: number; onGames: () => void; onAgain: () => void; onMap: () => void }) {
   const s = useAppState();
   const { won, firstTries } = result;
-  const rating = roundStars(won.length, firstTries.length);
+  const rating = level?.rating ?? roundStars(won.length, firstTries.length);
+  const opened = level?.opened ?? null;
   const streak = bestStreak(firstTries);
   const conquered = before.lamps < 3 && after.lamps >= 3;
   const newLamp = !conquered && after.lamps > before.lamps;
@@ -34,14 +40,14 @@ export function Reward({ result, before, after, woke, stars, ticket, tickets, on
     for (let i = 0; i < rating; i++) t.push(setTimeout(() => { setShown(i + 1); sfx.star(i); }, 300 + i * 380));
     const end = 300 + rating * 380;
     if (rating >= 2) t.push(setTimeout(sfx.fanfare, end));
-    if (conquered || newLamp || woke) t.push(setTimeout(sfx.sparkle, end + 700));
+    if (conquered || newLamp || woke || opened) t.push(setTimeout(sfx.sparkle, end + 700));
     return () => t.forEach(clearTimeout);
-  }, [rating, conquered, newLamp, woke]);
+  }, [rating, conquered, newLamp, woke, opened]);
 
   return (
     <div className="kscreen">
       {rating >= 2 && <div className="confetti" aria-hidden="true">{confetti.map((c, i) => <i key={i} style={{ left: `${c.left}%`, background: c.color, animationDuration: `${c.dur}s`, animationDelay: `${c.delay}s` }} />)}</div>}
-      <header className="khdr"><h1>{conquered ? "Wyspa zdobyta!" : TITLES[rating]}</h1><span className="sp" /><Jar stars={stars} /></header>
+      <header className="khdr"><h1>{conquered ? "Wyspa zdobyta!" : TITLES[rating]}</h1>{level && <span className="klevel-tag">Poziom {level.level}: {LEVEL_INFO[level.level].title}</span>}<span className="sp" /><Jar stars={stars} /></header>
       <div className="kreward">
         <div className="kreward-side">
           <Bat mood={shown === rating && rating >= 2 ? "happy" : "idle"} />
@@ -53,7 +59,13 @@ export function Reward({ result, before, after, woke, stars, ticket, tickets, on
           <div className="rstars" role="img" aria-label={`Ocena rundy: ${rating} z 3 gwiazdek`}>
             {[0, 1, 2].map((i) => <i key={i} className={i < shown ? "on" : ""} />)}
           </div>
-          <p className="rscore">{won.length} z {firstTries.length} za pierwszym razem</p>
+          <p className="rscore">{level?.score ?? `${won.length} z ${firstTries.length} za pierwszym razem`}</p>
+          {opened && (
+            <div className="rwoke rlevel" role="status">
+              <span>{LEVEL_INFO[opened].icon}</span>
+              <div><b>Otwiera się poziom {opened}!</b><small>{LEVEL_INFO[opened].title}: te same słówka, nowa zabawa</small></div>
+            </div>
+          )}
           {(conquered || newLamp) && (
             <div className={`rlamp${conquered ? " big" : ""}`} role="status">
               <span className="lamps">{[0, 1, 2].map((k) => <i key={k} className={k < after.lamps ? "on" : ""} />)}</span>
@@ -84,7 +96,7 @@ export function Reward({ result, before, after, woke, stars, ticket, tickets, on
       <div className="kfoot kfoot-2">
         <button className="kbtn kbtn-quiet" onClick={onMap}><Icon name="map" size={32} /> Mapa</button>
         {tickets > 0 && <button className="kbtn kbtn-game" onClick={onGames}>Minigra 🎟️</button>}
-        <button className="kbtn" onClick={onAgain}>Jeszcze raz ▶</button>
+        {opened && level ? <button className="kbtn" onClick={level.onNext}>Poziom {opened} ▶</button> : <button className="kbtn" onClick={onAgain}>Jeszcze raz ▶</button>}
       </div>
     </div>
   );

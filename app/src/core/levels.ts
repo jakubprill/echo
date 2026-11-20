@@ -6,7 +6,7 @@
 // The best stars of each level are kept per island and shown as the island's level stars.
 import type { AppState, Card, Deck } from "./types";
 import { shuffle } from "./date";
-import { playable, word, type Island } from "./kids";
+import { pictureKey, playable, word, type Island } from "./kids";
 import { MIN_GAME_WORDS, spellable } from "./games";
 
 export type Level = 1 | 2 | 3;
@@ -104,8 +104,8 @@ export function levelSpellWords(deck: Deck, s: AppState, rnd: () => number = Mat
   const out: Card[] = [];
   const pics = new Set<string>();
   for (const c of sorted) {
-    if (pics.has(c.emoji!)) continue;
-    pics.add(c.emoji!);
+    if (pics.has(pictureKey(c))) continue;
+    pics.add(pictureKey(c));
     out.push(c);
     if (out.length === SPELL_WORDS) break;
   }
